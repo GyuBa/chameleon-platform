@@ -32,14 +32,10 @@ export class ModelService extends HTTPService {
     async handleList(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const result = await this.modelController.getAllModel();
-        // console.log(result);
         const responseData = result.map((model) => {
             const {id, updatedTime, uniqueName, name: modelName, inputType, outputType} = model;
             const {username} = model.register;
             const regionName = model.image?.region.name;
-            // console.log(model.image);
-            // console.log(model.image?.region.name);
-            // console.log(regionName)
             return {id, updatedTime, uniqueName, modelName, inputType, outputType, username, regionName};
         })
         return res.status(200).send(responseData);
@@ -48,12 +44,10 @@ export class ModelService extends HTTPService {
     async handleModel(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const {uniqueName: inputUniqueName} = req.body;
-        console.log(req.body);
         if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
 
         try {
             const result = await this.modelController.findModelByUniqueName(inputUniqueName);
-            console.log(result);
             const {id, createdTime, updatedTime, uniqueName, description, name: modelName, inputType, outputType, parameter} = result;
             const {username} = result.register;
             const {name: regionName} = result.image?.region;
@@ -78,8 +72,6 @@ export class ModelService extends HTTPService {
     }
     async uploadImage(req: Request, res: Response, next: Function) {
         const uploadFile = req.files.file;
-        console.log(uploadFile);
-        console.log(DIR_PATH_UPLOADED_IMAGE);
         if ('mv' in uploadFile) {
             const path = 'uploads/' + uploadFile.name;
             await uploadFile?.mv(
@@ -131,16 +123,13 @@ export class ModelService extends HTTPService {
     async toPermalLink(repository: string, tag: string) {
         try {
             const tagName = tag.toLowerCase().replace(/ /g,'-');
-            // console.log(tagName);
             const repositoryName = repository.toLowerCase();
-            // console.log(repositoryName)
             const result = await this.imageController.findImageLikeTag(repositoryName, tagName);
 
             if(result.length == 0) {
                 return tagName;
             } else {
                 const lastIndex: number = await this.getLastIndex(repositoryName, tagName);
-                // console.log(lastIndex)
                 return tagName + '-' + (Number(lastIndex) + 1).toString();
             }
         } catch (e) {
@@ -151,15 +140,10 @@ export class ModelService extends HTTPService {
     async getLastIndex(repository: string, tag: string) {
         const imageList = await this.imageController.findImageLikeTag(repository, tag);
         const lastImage = imageList[imageList.length - 1];
-        // console.log('origin Tag : ', tag);
         if(tag.length == lastImage.tag.length) return 0;
         else {
             const newTag = lastImage.tag;
-            // console.log('new tag : ', newTag);
-            // const index = newTag.indexOf(tag);
-            // console.log(index);
             const result = newTag.slice(tag.length + 1, newTag.length)
-            // console.log('result :' + result)
             return parseInt(result? result:'0');
         }
     }
