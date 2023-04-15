@@ -131,14 +131,17 @@ export class ModelService extends HTTPService {
     async toPermalLink(repository: string, tag: string) {
         try {
             const tagName = tag.toLowerCase().replace(/ /g,'-');
+            // console.log(tagName);
             const repositoryName = repository.toLowerCase();
+            // console.log(repositoryName)
             const result = await this.imageController.findImageLikeTag(repositoryName, tagName);
 
             if(result.length == 0) {
                 return tagName;
             } else {
                 const lastIndex: number = await this.getLastIndex(repositoryName, tagName);
-                return tagName + '-' + (lastIndex + 1).toString();
+                // console.log(lastIndex)
+                return tagName + '-' + (Number(lastIndex) + 1).toString();
             }
         } catch (e) {
             console.error(e);
@@ -148,13 +151,16 @@ export class ModelService extends HTTPService {
     async getLastIndex(repository: string, tag: string) {
         const imageList = await this.imageController.findImageLikeTag(repository, tag);
         const lastImage = imageList[imageList.length - 1];
-
+        // console.log('origin Tag : ', tag);
         if(tag.length == lastImage.tag.length) return 0;
         else {
-            const tag = lastImage.tag;
-            const index = tag.indexOf(tag);
-            const result = tag.slice(index + tag.length + 1, tag.length)
-            return parseInt(result);
+            const newTag = lastImage.tag;
+            // console.log('new tag : ', newTag);
+            // const index = newTag.indexOf(tag);
+            // console.log(index);
+            const result = newTag.slice(tag.length + 1, newTag.length)
+            // console.log('result :' + result)
+            return parseInt(result? result:'0');
         }
     }
 
@@ -183,7 +189,7 @@ export class ModelService extends HTTPService {
         imageInput.tag = imageName;
         const insertedImage = await docker.getImage(req.user['username'].toLowerCase() + ':' + imageName);
         imageInput.uniqueId = ((await insertedImage.inspect()).Id);
-        console.log(imageInput.uniqueId);
+        // console.log(imageInput.uniqueId);
         const image = await this.imageController.createImage(imageInput, region);
 
         const model: Model = new Model();
@@ -199,7 +205,7 @@ export class ModelService extends HTTPService {
         // TODO: as 처리 깔끔하게
         // console.log(await findModelByImage(image));
 
-        console.log(await docker.getImage(imageInput.repository + ':' + imageInput.tag).inspect());
+        // console.log(await docker.getImage(imageInput.repository + ':' + imageInput.tag).inspect());
         return res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 }
