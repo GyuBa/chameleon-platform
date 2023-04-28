@@ -22,5 +22,5 @@ export class History extends Common {
         (model) => model.id
     )
     @JoinColumn()
-    targetModel: Model;
+        targetModel: Model;
 }
