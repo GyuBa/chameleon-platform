@@ -1,5 +1,4 @@
 export const DIR_PATH_UPLOADED_IMAGE = `${__dirname}/temp/image/`;
-
 export const RESPONSE_MESSAGE = {
     OK: {'msg':'ok'},
     SERVER_ERROR: {'msg':'server_error'},
@@ -12,4 +11,9 @@ export const RESPONSE_MESSAGE = {
     WRONG_INFO: {'msg': 'wrong_information_error'},
     WRONG_REQ: {'msg': 'wrong_request_error'},
     REG_NOT_FOUND: {'msg': 'region_not_found'}
+};
+
+export const DEFAULT_PATH = {
+    INPUT : '/',
+    OUTPUT : '/'
 };
