@@ -13,9 +13,7 @@ export class RegionService extends HTTPService {
 
     async regionList(req: Request, res: Response, next: Function) {
         try {
-            const result = (await this.regionController.getAllRegions()).map((data) => {
-                return {'id': data.id, 'name': data.name};
-            })
+            const result = (await this.regionController.getAllRegions()).map(({id, name}) => ({id, name}));
             return res.status(200).send(result);
         } catch (e) {
             return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
