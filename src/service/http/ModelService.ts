@@ -50,11 +50,12 @@ export class ModelService extends HTTPService {
 
     async handleInfo(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const {uniqueName: inputUniqueName} = req.body;
+        const inputUniqueName = String(req.query?.inputUniqueName);
         if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
 
         try {
             const modelResult = await this.modelController.findModelByUniqueName(inputUniqueName);
+            if(!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
             const {
                 id,
                 createdTime,
