@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, OneToMany} from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Model} from './Model';
 import {User} from './User';
@@ -10,18 +10,17 @@ export class History extends Common {
         inputPath: string;
     @Column()
         outputPath: string;
-    @OneToMany(
+    @ManyToOne(
         () => User,
         (user) => user.id
     )
     @JoinColumn()
         register: User;
 
-    @OneToMany(
+    @ManyToOne(
         () => Model,
         (model) => model.id
     )
     @JoinColumn()
-        model: Model;
-
+    targetModel: Model;
 }
