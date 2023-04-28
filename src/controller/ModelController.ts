@@ -22,13 +22,15 @@ export class ModelController extends BaseController<Model> {
             return await this.repository
                 .createQueryBuilder()
                 .select()
-                .where('id=:id', {id})
+                .leftJoinAndSelect('Model.register', 'User')
+                .leftJoinAndSelect('Model.image', 'Image')
+                .leftJoinAndSelect('Image.region', 'Region')
+                .where('Model.id = :id', { id })
                 .getOne();
         } catch (e) {
             console.error(e);
         }
     }
-
     // image update 시 update 가 아니라 기존 image 재 등록
     async findModelByImage(image: Image) {
         try {
