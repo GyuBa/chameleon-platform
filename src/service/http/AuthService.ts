@@ -134,17 +134,17 @@ export class AuthService extends HTTPService {
     async signOut(req: Request, res: Response, next: Function) {
         let isSessionError = false;
 
-        if(!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         await req.session.destroy(err => {
-            if(err) {
+            if (err) {
                 isSessionError = true;
             }
-        })
+        });
 
-        if(isSessionError){
+        if (isSessionError) {
             return res.status(200).send(RESPONSE_MESSAGE.OK);
         } else {
-            return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR)
+            return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
         }
     }
 }

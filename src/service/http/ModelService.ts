@@ -7,15 +7,17 @@ import {Image} from '../../entities/Image';
 import {Model} from '../../entities/Model';
 import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
+import * as fs from "fs";
+import {DockerUtils} from "../../utils/DockerUtils";
 
 export class ModelService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
         router.post('/upload', this.handleUpload);
         router.get('/list', this.handleList);
-        router.get('/info', this.handleModel);
+        router.get('/info', this.handleInfo);
         router.put('/update', this.handleUpdate);
-        router.put('/execute', this.handleExecute);
+        router.post('/execute', this.handleExecute);
         app.use('/model', router);
     }
 
@@ -23,10 +25,15 @@ export class ModelService extends HTTPService {
         if (!req.isAuthenticated()) res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const modelId = req.body.modelId;
         const model = await this.modelController.findModelById(modelId);
-        if (!model) res.status(401).send(RESPONSE_MESSAGE.WRONG_INFO);
+        if (!model) res.status(401).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Model does not exist.'});
         const image = model.image;
-        /* const docker = new Dockerode(region);
-        docker.createImage() */
+        console.log(model);
+        const region = model.image.region;
+        const docker = new Dockerode(region);
+        await docker.createContainer({
+            Image: image.uniqueId, name: `T${new Date().getTime()}`
+        });
+        return res.status(200).send({msg: 'ok'});
     }
 
     async handleList(req: Request, res: Response, next: Function) {
@@ -37,21 +44,31 @@ export class ModelService extends HTTPService {
             const {username} = model.register;
             const regionName = model.image?.region.name;
             return {id, updatedTime, uniqueName, modelName, inputType, outputType, username, regionName};
-        })
+        });
         return res.status(200).send(responseData);
     }
 
-    async handleModel(req: Request, res: Response, next: Function) {
+    async handleInfo(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const {uniqueName: inputUniqueName} = req.body;
         if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
 
         try {
-            const result = await this.modelController.findModelByUniqueName(inputUniqueName);
-            const {id, createdTime, updatedTime, uniqueName, description, name: modelName, inputType, outputType, parameter} = result;
-            const {username} = result.register;
-            const {name: regionName} = result.image?.region;
-            if (!result) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
+            const modelResult = await this.modelController.findModelByUniqueName(inputUniqueName);
+            const {
+                id,
+                createdTime,
+                updatedTime,
+                uniqueName,
+                description,
+                name: modelName,
+                inputType,
+                outputType,
+                parameter
+            } = modelResult;
+            const {username} = modelResult.register;
+            const regionName = modelResult.image?.region?.name;
+            if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
             else return res.status(200).send({
                 id,
                 createdTime,
@@ -70,17 +87,23 @@ export class ModelService extends HTTPService {
             return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
         }
     }
+
     async uploadImage(req: Request, res: Response, next: Function) {
         const uploadFile = req.files.file;
         if ('mv' in uploadFile) {
             const path = 'uploads/' + uploadFile.name;
-            await uploadFile?.mv(
-                path,
-                function (err) {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
+            await new Promise((resolve, reject) => {
+                uploadFile?.mv(
+                    path,
+                    function (err) {
+                        if (err) {
+                            console.error(err);
+                            reject(err);
+                        } else {
+                            resolve(true);
+                        }
+                    });
+            });
             return path;
         }
         return '';
@@ -120,13 +143,13 @@ export class ModelService extends HTTPService {
         return res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 
-    async toPermalLink(repository: string, tag: string) {
+    async toPermalink(repository: string, tag: string) {
         try {
-            const tagName = tag.toLowerCase().replace(/ /g,'-');
+            const tagName = tag.toLowerCase().replace(/ /g, '-');
             const repositoryName = repository.toLowerCase();
             const result = await this.imageController.findImageLikeTag(repositoryName, tagName);
 
-            if(result.length == 0) {
+            if (result.length == 0) {
                 return tagName;
             } else {
                 const lastIndex: number = await this.getLastIndex(repositoryName, tagName);
@@ -136,15 +159,16 @@ export class ModelService extends HTTPService {
             console.error(e);
         }
     }
+
     //함수 2개 요약 필요 getLastIndex, toPermalLink
     async getLastIndex(repository: string, tag: string) {
         const imageList = await this.imageController.findImageLikeTag(repository, tag);
         const lastImage = imageList[imageList.length - 1];
-        if(tag.length == lastImage.tag.length) return 0;
+        if (tag.length == lastImage.tag.length) return 0;
         else {
             const newTag = lastImage.tag;
-            const result = newTag.slice(tag.length + 1, newTag.length)
-            return parseInt(result? result:'0');
+            const result = newTag.slice(tag.length + 1, newTag.length);
+            return result ? parseInt(result) : 0;
         }
     }
 
@@ -154,42 +178,41 @@ export class ModelService extends HTTPService {
         if (!(req.isAuthenticated())) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
 
         const region: Region = await this.regionController.findRegionByName(regionName);
-        if(!region) return res.status(501).send(RESPONSE_MESSAGE.REG_NOT_FOUND);
+        if (!region) return res.status(501).send(RESPONSE_MESSAGE.REG_NOT_FOUND);
 
         const path = await this.uploadImage(req, res, next);
-        const docker = new Dockerode({host: region.host, port:region.port});
+        const docker = new Dockerode(region);
 
-        const imageInput: Image = new Image();
-        const imageName: string = await this.toPermalLink(req.user['username'], modelName);
+        const image: Image = new Image();
+        const username = req.user['username'].toLowerCase();
+        const imageName: string = await this.toPermalink(username, modelName);
 
         try {
-            await docker.importImage(path, {repo: req.user['username'].toLowerCase(), tag: imageName});
+            await DockerUtils.loadImage(docker, path, {repo: username, tag: imageName});
         } catch (e) {
             console.error(e);
             res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
         }
 
-        imageInput.repository = req.user['username'].toLowerCase();
-        imageInput.tag = imageName;
-        const insertedImage = await docker.getImage(req.user['username'].toLowerCase() + ':' + imageName);
-        imageInput.uniqueId = ((await insertedImage.inspect()).Id);
-        // console.log(imageInput.uniqueId);
-        const image = await this.imageController.createImage(imageInput, region);
+        image.repository = req.user['username'].toLowerCase();
+        image.tag = imageName;
+        const insertedImage = await docker.getImage(username + ':' + imageName);
+        image.uniqueId = (await insertedImage.inspect()).Id;
+        image.region = region;
 
         const model: Model = new Model();
         model.name = modelName;
         model.description = description;
         model.inputType = inputType;
         model.outputType = outputType;
-        model.image = image;
-        model.register = await this.userController.findUserById(req.user['id'] as number);
+        model.image = await this.imageController.createImage(image);
+
+        const userId = parseInt(req.user['id']);
+        model.register = await this.userController.findUserById(userId);
         model.uniqueName = imageName;
         model.parameter = parameter;
         await this.modelController.createModel(model);
-        // TODO: as 처리 깔끔하게
-        // console.log(await findModelByImage(image));
 
-        // console.log(await docker.getImage(imageInput.repository + ':' + imageInput.tag).inspect());
         return res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 }

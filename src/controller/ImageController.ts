@@ -8,15 +8,9 @@ export class ImageController extends BaseController<Image> {
         super(source, Image);
     }
 
-    async createImage(imageInput: Image, region: Region) {
+    async createImage(image: Image) {
         try {
-            const image = new Image();
-            image.repository = imageInput.repository;
-            image.tag = imageInput.tag;
-            image.region = region;
-            image.uniqueId = imageInput.uniqueId;
-            await this.repository.save(image);
-            return image;
+            return await this.repository.save(image);
         } catch (e) {
             console.error(e);
         }
@@ -56,7 +50,7 @@ export class ImageController extends BaseController<Image> {
                 .andWhere('tag like:tag', {tag: `${tag}%`})
                 .getMany();
         } catch (e) {
-            console.error(e)
+            console.error(e);
         }
     }
 
