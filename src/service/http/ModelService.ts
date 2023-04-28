@@ -14,7 +14,7 @@ import * as multer from 'multer';
 import {MulterUtils} from '../../utils/MulterUtils';
 import {HistoryStatus} from '../../types/chameleon-platform.enum';
 import PlatformServer from '../../server/core/PlatformServer';
-import {User} from "../../entities/User";
+import {User} from '../../entities/User';
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -107,7 +107,7 @@ export class ModelService extends HTTPService {
 
     async handleInfo(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const {uniqueName: inputUniqueName} = req.body;
+        const inputUniqueName = String(req.query?.inputUniqueName);
         if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
         try {
             const modelResult = await this.modelController.findModelByUniqueName(inputUniqueName);
