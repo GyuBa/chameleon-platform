@@ -63,4 +63,15 @@ export class RegionController extends BaseController<Region> {
             console.error(e);
         }
     }
+
+    async getAllRegions() {
+        try {
+            return await this.repository
+                .createQueryBuilder()
+                .select()
+                .getMany();
+        } catch(e) {
+            console.error(e);
+        }
+    }
 }
