@@ -10,7 +10,7 @@ export class BaseController<Entity extends ObjectLiteral & { id: number | string
         this.repository = source.getRepository(target);
     }
 
-    async create(entity: Entity) {
+    async save(entity: Entity) {
         try {
             return await this.repository.save(entity);
         } catch (e) {
@@ -26,15 +26,6 @@ export class BaseController<Entity extends ObjectLiteral & { id: number | string
                 .select()
                 .where('id=:id', {id})
                 .getOne();
-        } catch (e) {
-            console.error(e);
-            throw e;
-        }
-    }
-
-    async update(updatedEntity: Entity) {
-        try {
-            await this.repository.update(updatedEntity.id, updatedEntity);
         } catch (e) {
             console.error(e);
             throw e;
