@@ -19,7 +19,7 @@ export class History extends Common {
         (user) => user.id
     )
     @JoinColumn()
-        register: User;
+        executor: User;
 
     @ManyToOne(
         () => Model,
