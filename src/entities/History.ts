@@ -1,11 +1,22 @@
-import {Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne, UpdateDateColumn} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Model} from './Model';
 import {User} from './User';
 
-// ubuntu:latest
+export enum HistoryStatus {
+    CACHED = 'cached',
+    INITIALIZING = 'initializing',
+    RUNNING = 'running',
+    ERROR = 'error',
+    OFF = 'off',
+}
+
 @Entity()
 export class History extends Common {
+    @Column({type: 'enum', enum: HistoryStatus})
+        status: string;
+    @Column()
+        containerId: string;
     @Column()
         inputPath: string;
     @Column()
@@ -22,5 +33,10 @@ export class History extends Common {
         (model) => model.id
     )
     @JoinColumn()
-        targetModel: Model;
+        model: Model;
+
+    @Column()
+        startedTime: Date;
+    @Column()
+        endedTime: Date;
 }

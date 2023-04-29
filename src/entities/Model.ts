@@ -26,6 +26,9 @@ export class Model extends Common {
         image: Image;
 
     @Column()
+        cacheSize: number;
+
+    @Column()
         inputType: string;
 
     @Column()
@@ -33,4 +36,6 @@ export class Model extends Common {
 
     @Column()
         parameter: string;
+    @Column()
+        config: string;
 }

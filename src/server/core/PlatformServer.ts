@@ -38,8 +38,6 @@ export default class PlatformServer {
                 httpPort: 5000,
                 socketExternalHost: '',
                 socketPort: 5050,
-                defaultDockerServer: 'default',
-                dockerServers: {default: {host: '', port: 0}},
                 db: {
                     type: 'mysql',
                     host: '',
@@ -74,9 +72,5 @@ export default class PlatformServer {
         await this.source.destroy();
         this.httpServer.close();
         this.socketServer.close();
-    }
-
-    static getDockerServer(dockerServer: string) {
-        return dockerServer ? this.config.dockerServers[dockerServer] : this.config.dockerServers[this.config.defaultDockerServer];
     }
 }

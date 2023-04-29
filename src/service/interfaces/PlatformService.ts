@@ -3,47 +3,54 @@ import {ModelController} from '../../controller/ModelController';
 import {WalletController} from '../../controller/WalletController';
 import {UserController} from '../../controller/UserController';
 import {RegionController} from '../../controller/RegionController';
-import {DataSource} from "typeorm";
-import {SessionController} from "../../controller/SessionController";
+import {DataSource} from 'typeorm';
+import {SessionController} from '../../controller/SessionController';
+import {HistoryController} from '../../controller/HistoryController';
+import {BaseController} from '../../controller/interfaces/BaseController';
 
 export abstract class PlatformService {
-    private static _imageController;
+    private static controllers: Map<Function, BaseController<any>>;
+
     protected get imageController(): ImageController {
-        return PlatformService._imageController;
+        return PlatformService.getController(ImageController);
     }
 
-    private static _modelController;
     protected get modelController(): ModelController {
-        return PlatformService._modelController;
+        return PlatformService.getController(ModelController);
     }
 
-    private static _regionController;
     protected get regionController(): RegionController {
-        return PlatformService._regionController;
+        return PlatformService.getController(RegionController);
     }
 
-    private static _sessionController;
     protected get sessionController(): SessionController {
-        return PlatformService._sessionController;
+        return PlatformService.getController(SessionController);
     }
 
-
-    private static _userController;
     protected get userController(): UserController {
-        return PlatformService._userController;
+        return PlatformService.getController(UserController);
     }
 
-    private static _walletController;
     protected get walletController(): WalletController {
-        return PlatformService._walletController;
+        return PlatformService.getController(WalletController);
     }
 
-    public static init(source: DataSource) {
-        this._imageController = new ImageController(source);
-        this._modelController = new ModelController(source);
-        this._regionController = new RegionController(source);
-        this._sessionController = new SessionController(source);
-        this._userController = new UserController(source);
-        this._walletController = new WalletController(source);
+    protected get historyController(): HistoryController {
+        return PlatformService.getController(HistoryController);
+    }
+
+    public static init(source: DataSource): void {
+        this.controllers = new Map();
+        this.controllers.set(ImageController, new ImageController(source));
+        this.controllers.set(ModelController, new ModelController(source));
+        this.controllers.set(RegionController, new RegionController(source));
+        this.controllers.set(SessionController, new SessionController(source));
+        this.controllers.set(UserController, new UserController(source));
+        this.controllers.set(WalletController, new WalletController(source));
+        this.controllers.set(HistoryController, new HistoryController(source));
+    }
+
+    private static getController<T extends BaseController<any>>(controllerClass: { new(...args: any[]): T }): T {
+        return this.controllers.get(controllerClass) as T;
     }
 }
