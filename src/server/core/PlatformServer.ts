@@ -38,6 +38,7 @@ export default class PlatformServer {
                 httpPort: 5000,
                 socketExternalHost: '',
                 socketPort: 5050,
+                controllerPath: '../chameleon-controller/controller.tar',
                 db: {
                     type: 'mysql',
                     host: '',
