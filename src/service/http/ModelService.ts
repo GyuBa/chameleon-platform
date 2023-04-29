@@ -10,15 +10,21 @@ import {Model} from '../../entities/Model';
 import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
 import {DockerUtils} from '../../utils/DockerUtils';
+import * as multer from "multer";
+import {MulterUtils} from "../../utils/MulterUtils";
+
+type FileMap = { [fieldName: string]: Express.Multer.File[] };
+const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
+const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
 
 export class ModelService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.post('/upload', this.handleUpload);
+        router.post('/upload', images.single('file'), this.handleUpload);
+        router.post('/execute',images.single('inputs'), this.handleExecute);
         router.get('/list', this.handleList);
         router.get('/info', this.handleInfo);
         router.put('/update', this.handleUpdate);
-        router.post('/execute', this.handleExecute);
         app.use('/model', router);
     }
 
@@ -26,7 +32,7 @@ export class ModelService extends HTTPService {
         if (!req.isAuthenticated()) res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const user = await this.userController.findById(parseInt(req.user['id']));
         const model = await this.modelController.findById(req.body.modelId);
-        if (!model) res.status(401).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Model does not exist.'});
+        if (!model) return res.status(401).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Model does not exist.'});
         const image = model.image;
         const region = model.image.region;
         const docker = new Dockerode(region);
@@ -43,18 +49,15 @@ export class ModelService extends HTTPService {
                 Image: image.uniqueId
             });
             history.containerId = container.id;
-            await this.historyController.create(history);
+            await this.historyController.save(history);
+            history.model = model;
         }
         history.startedTime = new Date();
         history.status = HistoryStatus.INITIALIZING;
-        await this.historyController.update(history);
+        await this.historyController.save(history);
 
-        this.createCachedContainers(docker, model);
+        setTimeout(() => this.createCachedContainers(docker, model));
         await container.restart();
-
-
-
-
 
         // history.status
 
@@ -107,27 +110,6 @@ export class ModelService extends HTTPService {
         }
     }
 
-    async uploadImage(req: Request, res: Response, next: Function) {
-        const uploadFile = req.files.file;
-        if ('mv' in uploadFile) {
-            const path = 'uploads/' + uploadFile.name;
-            await new Promise((resolve, reject) => {
-                uploadFile?.mv(
-                    path,
-                    function (err) {
-                        if (err) {
-                            console.error(err);
-                            reject(err);
-                        } else {
-                            resolve(true);
-                        }
-                    });
-            });
-            return path;
-        }
-        return '';
-    }
-
     async handleUpdate(req: Request, res: Response, next: Function) {
         const {modelId, repository, modelName, description, inputType, outputType} = req.body;
 
@@ -140,7 +122,7 @@ export class ModelService extends HTTPService {
             prevModel.outputType = outputType;
             prevModel.description = description;
             prevModel.image.repository = repository;
-            await this.modelController.update(prevModel);
+            await this.modelController.save(prevModel);
             // await this.modelController.updateModel(modelId, {name: modelName, inputType, outputType, description});
             // await this.imageController.updateImage(prevModel.image.id, {repository});
         } catch (e) {
@@ -174,8 +156,8 @@ export class ModelService extends HTTPService {
         if (result.length == 0) {
             return tagName;
         } else {
-            const lastIndex: number = await this.getLastIndex(repositoryName, tagName);
-            return tagName + '-' + (Number(lastIndex) + 1).toString();
+            const lastIndex = await this.getLastIndex(repositoryName, tagName);
+            return `${tagName}-${lastIndex + 1}`;
         }
     }
 
@@ -191,40 +173,39 @@ export class ModelService extends HTTPService {
         }
     }
 
-    async createCachedContainer(docker: Dockerode, imageId: string) {
+    async createCachedContainer(docker: Dockerode, model: Model) {
         const cachedContainer = await docker.createContainer({
-            Image: imageId
+            Image: model.image.uniqueId
         });
         const cachedHistory = new History();
         cachedHistory.containerId = cachedContainer.id;
         cachedHistory.status = HistoryStatus.CACHED;
-        return await this.historyController.create(cachedHistory);
+        cachedHistory.model = model;
+        return await this.historyController.save(cachedHistory);
     }
 
     async createCachedContainers(docker: Dockerode, model: Model) {
         const cachedSize = (await this.historyController.findAllByImageAndStatus(model.image, HistoryStatus.CACHED)).length;
-        const tasks = Array.from({length: model.cacheSize - cachedSize}, () => this.createCachedContainer(docker, model.image.uniqueId));
+        const tasks = Array.from({length: model.cacheSize - cachedSize}, () => this.createCachedContainer(docker, model));
         return await Promise.all(tasks);
     }
 
-
     async handleUpload(req: Request, res: Response, next: Function) {
-        const {regionName, modelName, description, inputType, outputType, parameter} = req.body;
-        if (!(regionName && modelName && description && inputType && outputType && req.files.file && parameter)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
+        const {regionName, modelName, description, inputType, outputType, parameters} = req.body;
+        if (!(regionName && modelName && description && inputType && outputType && req.file && parameters)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
         if (!(req.isAuthenticated())) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
 
         const region: Region = await this.regionController.findRegionByName(regionName);
         if (!region) return res.status(501).send(RESPONSE_MESSAGE.REG_NOT_FOUND);
 
-        const path = await this.uploadImage(req, res, next);
+        const file = req.file;
         const docker = new Dockerode(region);
-
         const image: Image = new Image();
         const username = req.user['username'].toLowerCase();
         const imageName: string = await this.toPermalink(username, modelName);
 
         try {
-            await DockerUtils.loadImage(docker, path, {repo: username, tag: imageName});
+            await DockerUtils.loadImage(docker, file.path, {repo: username, tag: imageName});
         } catch (e) {
             console.error(e);
             res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
@@ -235,21 +216,35 @@ export class ModelService extends HTTPService {
         const insertedImage = await docker.getImage(username + ':' + imageName);
         image.uniqueId = (await insertedImage.inspect()).Id;
         image.region = region;
+        image.path = file.path;
 
         const model: Model = new Model();
         model.name = modelName;
         model.description = description;
         model.inputType = inputType;
         model.outputType = outputType;
-        model.image = await this.imageController.create(image);
+        model.image = await this.imageController.save(image);
         model.cacheSize = region.cacheSize;
+        model.setConfig({
+            script: "/opt/mctr/run",
+            input: "/opt/mctr/i/raw",
+            inputInfo: "/opt/mctr/i/info",
+            output: "/opt/mctr/o/raw",
+            outputInfo: "/opt/mctr/o/info",
+            outputDescription: "/opt/mctr/o/desc",
+            controllerPath: "/opt/mctr/",
+            debugLog: "/dev/null"
+        });
+        console.log(model);
+        // model-executor의 model configuration 기능 migration
+        // TODO: 여유가 있다면 프론트에서 해당 뷰를 만들어야 함, 후순위
+        model.setParameters(JSON.parse(parameters));
 
         const userId = parseInt(req.user['id']);
         model.register = await this.userController.findById(userId);
         model.uniqueName = imageName;
-        model.parameter = parameter;
-        await this.modelController.create(model);
-        this.createCachedContainers(docker, model);
+        await this.modelController.save(model);
+        // setTimeout(() => this.createCachedContainers(docker, model));
         return res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 }

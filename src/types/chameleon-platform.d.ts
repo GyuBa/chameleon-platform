@@ -54,3 +54,19 @@ export type PlatformConfig = {
     httpPort: number;
     db: MysqlConnectionOptions;
 };
+
+export type ModelParameters = {
+    uischema: any;
+    schema: any;
+}
+
+export type ModelConfig = {
+    script: string;
+    input: string;
+    inputInfo: string;
+    output: string;
+    outputInfo: string;
+    outputDescription: string;
+    controllerPath: string;
+    debugLog: string;
+}

@@ -20,8 +20,9 @@ describe('Execute model', () => {
         formData.append('description', '# test model description');
         formData.append('inputType', 'image');
         formData.append('outputType', 'image');
-        formData.append('parameter', '{}');
+        formData.append('parameters', JSON.stringify({uischema: {}, schema: {}}));
         formData.append('file', fs.createReadStream('test.tar'));
+        // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
         try {
             const result = await TestingManager.axios.post('/model/upload', formData).then(r => r.data);
             console.log(result);
@@ -33,7 +34,6 @@ describe('Execute model', () => {
     test('execute', async () => {
         const modelController = new ModelController(PlatformServer.source);
         const model = await modelController.findModelByUniqueName(modelName);
-        console.log(model);
         const formData = new FormData();
         formData.append('modelId', model.id);
         try {

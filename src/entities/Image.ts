@@ -11,6 +11,8 @@ export class Image extends Common {
 
     @Column()
         tag: string;
+    @Column()
+        path: string;
 
     @Column()
         uniqueId: string;

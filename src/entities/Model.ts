@@ -2,6 +2,7 @@ import {Column, Entity, JoinColumn, ManyToOne, OneToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {User} from './User';
 import {Image} from './Image';
+import {ModelConfig, ModelParameters} from '../types/chameleon-platform';
 
 @Entity()
 export class Model extends Common {
@@ -35,7 +36,24 @@ export class Model extends Common {
         outputType: string;
 
     @Column()
-        parameter: string;
+        parameters: string;
     @Column()
         config: string;
+
+
+    getConfig(): ModelConfig {
+        return JSON.parse(this.config);
+    }
+
+    setConfig(config: ModelConfig) {
+        this.config = JSON.stringify(config);
+    }
+
+    getParameters(): ModelParameters {
+        return JSON.parse(this.parameters);
+    }
+
+    setParameters(parameters: ModelParameters) {
+        this.parameters = JSON.stringify(parameters);
+    }
 }

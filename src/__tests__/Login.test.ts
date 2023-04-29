@@ -15,7 +15,7 @@ describe('Login', () => {
         const userController = new UserController(PlatformServer.source);
         const testUser = await userController.findUserByEmail(testAccount.email);
         if (testUser) {
-            await userController.deleteUser(testUser);
+            await userController.delete(testUser);
         }
     });
 
