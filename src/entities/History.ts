@@ -1,8 +1,8 @@
-import {Column, Entity, JoinColumn, ManyToOne, UpdateDateColumn} from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Model} from './Model';
 import {User} from './User';
-import {HistoryStatus} from "../types/chameleon-platform";
+import {HistoryStatus} from "../types/chameleon-platform.enum";
 
 @Entity()
 export class History extends Common {

@@ -12,9 +12,8 @@ import {Server} from 'http';
 import {DockerUtils} from '../../utils/DockerUtils';
 import * as multer from "multer";
 import {MulterUtils} from "../../utils/MulterUtils";
-import {HistoryStatus} from "../../types/chameleon-platform";
+import {HistoryStatus} from "../../types/chameleon-platform.enum";
 
-type FileMap = { [fieldName: string]: Express.Multer.File[] };
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
 
