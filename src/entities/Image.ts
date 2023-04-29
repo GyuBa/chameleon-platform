@@ -3,7 +3,6 @@ import {Common} from './interfaces/Common';
 import {Region} from './Region';
 import {Model} from './Model';
 
-// ubuntu:latest
 @Entity()
 export class Image extends Common {
     @Column()
