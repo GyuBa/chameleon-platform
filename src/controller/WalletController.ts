@@ -1,22 +1,10 @@
 import {Wallet} from '../entities/Wallet';
-import {User} from '../entities/User';
 import {BaseController} from './interfaces/BaseController';
-import {DataSource} from "typeorm";
+import {DataSource} from 'typeorm';
 
 export class WalletController extends BaseController<Wallet> {
     constructor(source: DataSource) {
         super(source, Wallet);
-    }
-
-    async createWallet(user: User) {
-        try {
-            const wallet = new Wallet();
-            wallet.user = user;
-            await this.repository.save(wallet);
-            return wallet;
-        } catch (e) {
-            console.error(e);
-        }
     }
 
     async findWalletByUserId(userId: number) {
@@ -27,10 +15,11 @@ export class WalletController extends BaseController<Wallet> {
             return wallet;
         } catch (e) {
             console.error(e);
+            throw e;
         }
     }
 
-    async updateWallet(userId: number, amount: number) {
+    async updateAmount(userId: number, amount: number) {
         try {
             const wallet = await this.findWalletByUserId(userId);
             await this.repository
@@ -43,6 +32,7 @@ export class WalletController extends BaseController<Wallet> {
                 .execute();
         } catch (e) {
             console.error(e);
+            throw e;
         }
     }
 }

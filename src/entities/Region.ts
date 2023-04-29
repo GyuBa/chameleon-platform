@@ -1,8 +1,6 @@
-import {Column, Entity, OneToMany} from 'typeorm';
+import {Column, Entity} from 'typeorm';
 import {Common} from './interfaces/Common';
-import {Image} from './Image';
 
-// ubuntu:latest
 @Entity()
 export class Region extends Common {
     @Column()
@@ -13,4 +11,7 @@ export class Region extends Common {
 
     @Column()
         port: number;
+
+    @Column()
+        cacheSize: number;
 }

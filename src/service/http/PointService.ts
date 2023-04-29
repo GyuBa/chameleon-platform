@@ -39,7 +39,7 @@ export class PointService extends HTTPService {
         if (!amount) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
         if (!(await this.walletController.findWalletByUserId(Number(req.user['id'])))) return res.status(501).send(RESPONSE_MESSAGE.NOT_FOUND);
         if ((await this.walletController.findWalletByUserId(Number(req.user['id'])))['point'] + Number(amount) < 0) return res.status(501).send(RESPONSE_MESSAGE.WRONG_REQ);
-        await this.walletController.updateWallet(req.user['id'], amount);
+        await this.walletController.updateAmount(req.user['id'], amount);
         return res.status(200).send(RESPONSE_MESSAGE);
     }
 }

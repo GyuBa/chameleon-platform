@@ -29,9 +29,9 @@ export class PassportService extends HTTPService {
 
     async deserializeUserHandler(id: any, done) {
         try {
-            return done(null, await this.userController.findUserById(id));
+            return done(null, await this.userController.findById(id));
         } catch (e) {
-            console.error(e);
+            // console.error(e);
             return done(e);
         }
     }
@@ -55,7 +55,7 @@ export class PassportService extends HTTPService {
                 username: user.username
             });
         } catch (e) {
-            console.error(e);
+            // console.error(e);
             return done(e);
         }
     }

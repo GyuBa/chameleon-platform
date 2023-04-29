@@ -79,7 +79,7 @@ export class AuthService extends HTTPService {
         user.email = email;
         user.username = username;
         user.password = password;
-        await this.userController.createUser(user);
+        await this.userController.create(user);
         res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 
@@ -122,10 +122,9 @@ export class AuthService extends HTTPService {
         try {
             const user = new User();
             user.password = password;
-            await this.userController.updateUser(user);
+            await this.userController.update(user);
             return res.status(200).send(RESPONSE_MESSAGE.OK);
         } catch (e) {
-            console.log(e);
             return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
         }
     }
