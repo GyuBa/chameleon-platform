@@ -55,6 +55,14 @@ export type PlatformConfig = {
     db: MysqlConnectionOptions;
 };
 
+export enum HistoryStatus {
+    CACHED = 'cached',
+    INITIALIZING = 'initializing',
+    RUNNING = 'running',
+    ERROR = 'error',
+    OFF = 'off',
+}
+
 export type ModelParameters = {
     uischema: any;
     schema: any;

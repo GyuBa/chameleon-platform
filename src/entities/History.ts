@@ -2,14 +2,7 @@ import {Column, Entity, JoinColumn, ManyToOne, UpdateDateColumn} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Model} from './Model';
 import {User} from './User';
-
-export enum HistoryStatus {
-    CACHED = 'cached',
-    INITIALIZING = 'initializing',
-    RUNNING = 'running',
-    ERROR = 'error',
-    OFF = 'off',
-}
+import {HistoryStatus} from "../types/chameleon-platform";
 
 @Entity()
 export class History extends Common {
