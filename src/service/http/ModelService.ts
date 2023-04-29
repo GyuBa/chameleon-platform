@@ -4,7 +4,7 @@ import * as Dockerode from 'dockerode';
 import {Container} from 'dockerode';
 import {RESPONSE_MESSAGE} from '../../constant/Constants';
 import {Region} from '../../entities/Region';
-import {History, HistoryStatus} from '../../entities/History';
+import {History} from '../../entities/History';
 import {Image} from '../../entities/Image';
 import {Model} from '../../entities/Model';
 import {HTTPService} from '../interfaces/http/HTTPService';
@@ -12,6 +12,7 @@ import {Server} from 'http';
 import {DockerUtils} from '../../utils/DockerUtils';
 import * as multer from "multer";
 import {MulterUtils} from "../../utils/MulterUtils";
+import {HistoryStatus} from "../../types/chameleon-platform";
 
 type FileMap = { [fieldName: string]: Express.Multer.File[] };
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
