@@ -17,9 +17,9 @@ export class History extends Common {
         status: string;
     @Column()
         containerId: string;
-    @Column()
+    @Column({nullable: true})
         inputPath: string;
-    @Column()
+    @Column({nullable: true})
         outputPath: string;
     @ManyToOne(
         () => User,
@@ -35,8 +35,8 @@ export class History extends Common {
     @JoinColumn()
         model: Model;
 
-    @Column()
+    @Column({nullable: true})
         startedTime: Date;
-    @Column()
+    @Column({nullable: true})
         endedTime: Date;
 }
