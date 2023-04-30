@@ -7,8 +7,13 @@ import DefaultWSManager from '../server/impl/manager/DefaultWSManager';
 import * as express from 'express';
 import {Application} from 'express';
 import {Server} from 'http';
-import {MysqlConnectionOptions} from "typeorm/driver/mysql/MysqlConnectionOptions";
-
+import {MysqlConnectionOptions} from 'typeorm/driver/mysql/MysqlConnectionOptions';
+import * as stream from 'stream';
+import {Terminal} from 'xterm-headless';
+import {SerializeAddon} from 'xterm-addon-serialize';
+import {SocketReceiveMode} from "./chameleon-platform.enum";
+export type Resolver = (value?: unknown) => void;
+type ReadStreamClose = (callback?: (err?: NodeJS.ErrnoException | null) => void) => void;
 export type ISocket = Socket & { id: string };
 export type IWSocket = WebSocket & { id: string, req: any };
 
@@ -34,7 +39,19 @@ export interface WebSocketHandler<Server, Socket> {
 
 export type DefaultSocketServer = SocketServer<DefaultSocketData, DefaultSocketManager>;
 export type DefaultSocketData = {
-    /* empty */
+    terminalBuffer: string;
+    waitTerminalFlushTimeout: boolean;
+    buffer: string;
+    receiveMode: SocketReceiveMode;
+    receivedBytes: number;
+    fileSize: number;
+    writeStream: stream.Writable;
+    readStream: stream.Readable & { close?: ReadStreamClose };
+    fileReceiveResolver: Resolver;
+    fileSendResolver: Resolver;
+    modelPath: string;
+    terminal: Terminal;
+    terminalSerializer: SerializeAddon;
 };
 export type DefaultSocket = ISocket & { data: DefaultSocketData };
 
