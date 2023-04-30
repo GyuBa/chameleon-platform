@@ -10,6 +10,7 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
 
     onMessage(server: DefaultWSServer, socket: DefaultWSocket, rawData: RawData, isBinary: boolean) {
         /* empty */
+        console.log(rawData.toString());
     }
 
     onClose(server: DefaultWSServer, socket: DefaultWSocket, code: number, reason: Buffer) {

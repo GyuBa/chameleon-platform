@@ -50,6 +50,7 @@ export type PlatformConfig = {
     defaultDockerServer: string;
     socketExternalHost: string;
     socketExternalPort: number;
+    sessionSecret: string;
     controllerPath: string;
     socketPort: number;
     httpPort: number;

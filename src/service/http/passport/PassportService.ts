@@ -27,7 +27,7 @@ export class PassportService extends HTTPService {
         return done(null, user.id);
     }
 
-    async deserializeUserHandler(id: any, done) {
+    async deserializeUserHandler(id, done) {
         try {
             return done(null, await this.userController.findById(id));
         } catch (e) {
@@ -36,10 +36,10 @@ export class PassportService extends HTTPService {
         }
     }
 
-    async verifyHandler(userId, password, done) {
+    async verifyHandler(email, password, done) {
         try {
-            const user = await this.userController.findUserByEmail(userId);
-            if (!(userId && password)) {
+            const user = await this.userController.findUserByEmail(email);
+            if (!(email && password)) {
                 return done(null, false, {reason: {msg: 'non_field_errors'}});
             }
             if (!user) {

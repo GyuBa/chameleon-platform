@@ -16,29 +16,30 @@ import {ExpressService} from './service/http/ExpressService';
 import {RegionService} from "./service/http/RegionService";
 
 !async function () {
-    const httpServer: HTTPServer = new HTTPServer();
-    const wsServer: DefaultWSServer = new WSServer({
-        server: httpServer.server, path: '/websocket',
-        perMessageDeflate: {
-            zlibDeflateOptions: {
-                // See zlib defaults.
-                chunkSize: 1024,
-                memLevel: 7,
-                level: 3
-            },
-            zlibInflateOptions: {
-                chunkSize: 10 * 1024
-            },
-            // Other options settable:
-            clientNoContextTakeover: true, // Defaults to negotiated value.
-            serverNoContextTakeover: true, // Defaults to negotiated value.
-            serverMaxWindowBits: 10, // Defaults to negotiated value.
-            // Below options specified as default values.
-            concurrencyLimit: 10, // Limits zlib concurrency for perf.
-            threshold: 1024 // Size (in bytes) below which messages
-            // should not be compressed.
+    const httpServer: HTTPServer = new HTTPServer({
+        wsOptions: {
+            perMessageDeflate: {
+                zlibDeflateOptions: {
+                    // See zlib defaults.
+                    chunkSize: 1024,
+                    memLevel: 7,
+                    level: 3
+                },
+                zlibInflateOptions: {
+                    chunkSize: 10 * 1024
+                },
+                // Other options settable:
+                clientNoContextTakeover: true, // Defaults to negotiated value.
+                serverNoContextTakeover: true, // Defaults to negotiated value.
+                serverMaxWindowBits: 10, // Defaults to negotiated value.
+                // Below options specified as default values.
+                concurrencyLimit: 10, // Limits zlib concurrency for perf.
+                threshold: 1024 // Size (in bytes) below which messages
+                // should not be compressed.
+            }
         }
-    }, new DefaultWSManager());
+    });
+    const wsServer: DefaultWSServer = new WSServer(httpServer.app, '/websocket', new DefaultWSManager());
     const socketServer: DefaultSocketServer = new SocketServer(new DefaultSocketManager());
 
     await PlatformServer.init({httpServer, wsServer, socketServer});
