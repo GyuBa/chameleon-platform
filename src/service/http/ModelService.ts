@@ -10,9 +10,10 @@ import {Model} from '../../entities/Model';
 import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
 import {DockerUtils} from '../../utils/DockerUtils';
-import * as multer from "multer";
-import {MulterUtils} from "../../utils/MulterUtils";
-import {HistoryStatus} from "../../types/chameleon-platform.enum";
+import * as multer from 'multer';
+import {MulterUtils} from '../../utils/MulterUtils';
+import {HistoryStatus} from '../../types/chameleon-platform.enum';
+import PlatformServer from '../../server/core/PlatformServer';
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -21,7 +22,7 @@ export class ModelService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
         router.post('/upload', images.single('file'), this.handleUpload);
-        router.post('/execute',images.single('inputs'), this.handleExecute);
+        router.post('/execute', images.single('inputs'), this.handleExecute);
         router.get('/list', this.handleList);
         router.get('/info', this.handleInfo);
         router.put('/update', this.handleUpdate);
@@ -53,13 +54,26 @@ export class ModelService extends HTTPService {
             history.model = model;
         }
         history.startedTime = new Date();
+        history.executor = user;
         history.status = HistoryStatus.INITIALIZING;
         await this.historyController.save(history);
 
         setTimeout(() => this.createCachedContainers(docker, model));
+        const config = history.model.getConfig();
+        const paths = config.paths;
         await container.restart();
+        await container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerPath});
+        for (const path of Object.values(paths)) {
+            await DockerUtils.exec(container, `rm -rf "${path}"`);
+        }
 
-        // history.status
+        setTimeout(() =>
+            DockerUtils.exec(container, `chmod 777 "${paths.controllerPath}/controller" && "${paths.controllerPath}/controller" ${PlatformServer.config.socketExternalHost} ${PlatformServer.config.socketExternalPort} ${Buffer.from(model.path).toString('base64')} >> ${paths.debugLog} 2>&1`)
+        );
+
+        history.status = HistoryStatus.RUNNING;
+        history.startedTime = new Date();
+        await this.historyController.save(history);
 
         return res.status(200).send({msg: 'ok'});
     }
@@ -161,7 +175,7 @@ export class ModelService extends HTTPService {
         }
     }
 
-    //함수 2개 요약 필요 getLastIndex, toPermalLink
+    // TODO: 함수 2개 요약 필요 getLastIndex, toPermalink
     async getLastIndex(repository: string, tag: string) {
         const imageList = await this.imageController.findAllImageByRepositoryAndTagLike(repository, tag);
         const lastImage = imageList[imageList.length - 1];
@@ -202,18 +216,18 @@ export class ModelService extends HTTPService {
         const docker = new Dockerode(region);
         const image: Image = new Image();
         const username = req.user['username'].toLowerCase();
-        const imageName: string = await this.toPermalink(username, modelName);
+        const imageTag = await this.toPermalink(username, modelName);
 
         try {
-            await DockerUtils.loadImage(docker, file.path, {repo: username, tag: imageName});
+            await DockerUtils.loadImage(docker, file.path, {repo: username, tag: imageTag});
         } catch (e) {
             console.error(e);
-            res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
+            res.status(501).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Wrong image file.'});
         }
 
         image.repository = req.user['username'].toLowerCase();
-        image.tag = imageName;
-        const insertedImage = await docker.getImage(username + ':' + imageName);
+        image.tag = imageTag;
+        const insertedImage = await docker.getImage(username + ':' + imageTag);
         image.uniqueId = (await insertedImage.inspect()).Id;
         image.region = region;
         image.path = file.path;
@@ -226,25 +240,28 @@ export class ModelService extends HTTPService {
         model.image = await this.imageController.save(image);
         model.cacheSize = region.cacheSize;
         model.setConfig({
-            script: "/opt/mctr/run",
-            input: "/opt/mctr/i/raw",
-            inputInfo: "/opt/mctr/i/info",
-            output: "/opt/mctr/o/raw",
-            outputInfo: "/opt/mctr/o/info",
-            outputDescription: "/opt/mctr/o/desc",
-            controllerPath: "/opt/mctr/",
-            debugLog: "/dev/null"
+            paths: {
+                script: '/opt/mctr/run',
+                input: '/opt/mctr/i/raw',
+                inputInfo: '/opt/mctr/i/info',
+                output: '/opt/mctr/o/raw',
+                outputInfo: '/opt/mctr/o/info',
+                outputDescription: '/opt/mctr/o/desc',
+                controllerPath: '/opt/mctr/',
+                debugLog: '/dev/null'
+            }
         });
-        console.log(model);
         // model-executor의 model configuration 기능 migration
         // TODO: 여유가 있다면 프론트에서 해당 뷰를 만들어야 함, 후순위
         model.setParameters(JSON.parse(parameters));
 
         const userId = parseInt(req.user['id']);
         model.register = await this.userController.findById(userId);
-        model.uniqueName = imageName;
+        model.uniqueName = imageTag;
         await this.modelController.save(model);
-        // setTimeout(() => this.createCachedContainers(docker, model));
+        console.log(model);
+
+        setTimeout(() => this.createCachedContainers(docker, model));
         return res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 }

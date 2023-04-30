@@ -3,14 +3,16 @@ import {Application} from 'express';
 import * as http from 'http';
 import {Server} from 'http';
 import {HTTPHandler} from '../types/chameleon-platform';
+import * as expressWs from "express-ws";
 
 export default class HTTPServer {
-    readonly app: Application;
+    readonly app: expressWs.Application;
     readonly server: Server;
 
-    constructor() {
-        this.app = express();
-        this.server = http.createServer(this.app);
+    constructor(options?: expressWs.Options) {
+        const application = express();
+        this.server = http.createServer(application);
+        this.app = expressWs(application).app;
     }
 
     addHandler(httpHandler: HTTPHandler) {
@@ -18,7 +20,7 @@ export default class HTTPServer {
     }
 
     listen(port: number) {
-        this.server.listen(port, () => {
+        this.app.listen(port, () => {
             console.log(`HTTPServer Listening on ${port}.`);
         });
     }

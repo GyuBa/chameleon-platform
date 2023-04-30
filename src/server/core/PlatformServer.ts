@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import {DefaultSocketServer, DefaultWSServer, PlatformConfig} from '../../types/chameleon-platform';
 import {DataSource} from 'typeorm';
 import {PlatformService} from '../../service/interfaces/PlatformService';
+import * as crypto from 'crypto';
 
 export default class PlatformServer {
     static httpServer: HTTPServer;
@@ -38,6 +39,8 @@ export default class PlatformServer {
                 httpPort: 5000,
                 socketExternalHost: '',
                 socketPort: 5050,
+                controllerPath: '../chameleon-controller/controller.tar',
+                sessionSecret: crypto.randomBytes(32).toString('hex'),
                 db: {
                     type: 'mysql',
                     host: '',
@@ -65,6 +68,7 @@ export default class PlatformServer {
     static async start() {
         await this.initializeDB();
         this.httpServer.listen(this.config.httpPort);
+        this.wsServer.start();
         this.socketServer.listen(this.config.socketPort);
     }
 

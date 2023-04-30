@@ -4,7 +4,8 @@ import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
 import * as session from 'express-session';
 import {TypeormStore} from 'connect-typeorm';
-
+import PlatformServer from "../../server/core/PlatformServer";
+import * as expressWs from 'express-ws';
 export class ExpressService extends HTTPService {
     init(app: Application, server: Server) {
         app.use(express.json());
@@ -16,7 +17,7 @@ export class ExpressService extends HTTPService {
                 limitSubquery: false, // If using MariaDB.
                 ttl: 86400
             }).connect(this.sessionController.repository),
-            secret: 'keyboard cat'
+            secret: PlatformServer.config.sessionSecret
         }));
     }
 }

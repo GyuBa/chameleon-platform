@@ -50,6 +50,8 @@ export type PlatformConfig = {
     defaultDockerServer: string;
     socketExternalHost: string;
     socketExternalPort: number;
+    sessionSecret: string;
+    controllerPath: string;
     socketPort: number;
     httpPort: number;
     db: MysqlConnectionOptions;
@@ -62,12 +64,14 @@ export type ModelParameters = {
 }
 
 export type ModelConfig = {
-    script: string;
-    input: string;
-    inputInfo: string;
-    output: string;
-    outputInfo: string;
-    outputDescription: string;
-    controllerPath: string;
-    debugLog: string;
+    paths: {
+        script: string;
+        input: string;
+        inputInfo: string;
+        output: string;
+        outputInfo: string;
+        outputDescription: string;
+        controllerPath: string;
+        debugLog: string;
+    }
 }
