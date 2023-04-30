@@ -12,7 +12,7 @@ describe('Execute model', () => {
         await LoginUtils.login();
     });
 
-    // curl -O https://private_raw.abstr.net/mongle/test.tar
+    // (chameleon-platform root에서) curl -O https://private_raw.abstr.net/mongle/test.tar
     test('upload', async () => {
         const formData = new FormData();
         formData.append('regionName', 'mongle');
@@ -31,11 +31,17 @@ describe('Execute model', () => {
         }
     }, 2 * 60 * 1000);
 
+    // (chameleon-platform root에서) curl -O https://private_raw.abstr.net/mongle/image.png
     test('execute', async () => {
         const modelController = new ModelController(PlatformServer.source);
         const model = await modelController.findModelByUniqueName(modelName);
+
         const formData = new FormData();
         formData.append('modelId', model.id);
+        formData.append('parameters', JSON.stringify({param1: 'example1', param2: 2}));
+        // JSONForm의 결과물
+        formData.append('input', fs.createReadStream('input.png'));
+        // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
         try {
             const result = await TestingManager.axios.post('/model/execute', formData).then(r => r.data);
             console.log(result);
