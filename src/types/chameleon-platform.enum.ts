@@ -16,3 +16,21 @@ export enum WSMessageType {
     UpdateHistory = 'UpdateHistory',
     UpdateHistories = 'UpdateHistories'
 }
+
+export enum SocketMessageType {
+    Hello = 'Hello',
+    Launch = 'Launch',
+    FileWait = 'FileWait',
+    FileReceiveEnd = 'FileReceiveEnd',
+    Terminal = 'Terminal',
+    ProcessEnd = 'ProcessEnd',
+    File = 'File',
+    RequestFile = 'RequestFile',
+    WaitReceive = 'WaitReceive',
+    LaunchModel = 'LaunchModel'
+}
+
+export enum SocketReceiveMode {
+    JSON,
+    FILE
+}
