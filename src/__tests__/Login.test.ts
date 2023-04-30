@@ -1,6 +1,6 @@
-import PlatformServer from "../server/core/PlatformServer";
-import {UserController} from "../controller/UserController";
-import {TestingManager} from "./common/TestingManager";
+import PlatformServer from '../server/core/PlatformServer';
+import {UserController} from '../controller/UserController';
+import {TestingManager} from './common/TestingManager';
 
 const testAccount = {
     'email': `test${new Date().getTime()}@test.com`,
@@ -27,7 +27,7 @@ describe('Login', () => {
     test('sign-in', async () => {
         const result = await TestingManager.axios.post('/auth/sign-in', testAccount).then(r => ({
             data: r.data,
-            cookie: r.headers["set-cookie"][0]
+            cookie: r.headers['set-cookie'][0]
         }));
         console.log(result);
     });

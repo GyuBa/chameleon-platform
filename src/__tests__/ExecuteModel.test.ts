@@ -1,9 +1,9 @@
-import {TestingManager} from "./common/TestingManager";
-import {LoginUtils} from "./common/LoginUtils";
-import * as fs from "fs";
+import {TestingManager} from './common/TestingManager';
+import {LoginUtils} from './common/LoginUtils';
+import * as fs from 'fs';
 import * as FormData from 'form-data';
-import PlatformServer from "../server/core/PlatformServer";
-import {ModelController} from "../controller/ModelController";
+import PlatformServer from '../server/core/PlatformServer';
+import {ModelController} from '../controller/ModelController';
 
 const modelName = `test-model-${new Date().getTime()}`;
 describe('Execute model', () => {
