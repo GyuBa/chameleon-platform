@@ -14,6 +14,7 @@ import * as multer from 'multer';
 import {MulterUtils} from '../../utils/MulterUtils';
 import {HistoryStatus} from '../../types/chameleon-platform.enum';
 import PlatformServer from '../../server/core/PlatformServer';
+import {User} from "../../entities/User";
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -22,7 +23,7 @@ export class ModelService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
         router.post('/upload', images.single('file'), this.handleUpload);
-        router.post('/execute', images.single('inputs'), this.handleExecute);
+        router.post('/execute', inputs.single('input'), this.handleExecute);
         router.get('/list', this.handleList);
         router.get('/info', this.handleInfo);
         router.put('/update', this.handleUpdate);
@@ -31,8 +32,11 @@ export class ModelService extends HTTPService {
 
     async handleExecute(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const user = await this.userController.findById(parseInt(req.user['id']));
-        const model = await this.modelController.findById(req.body.modelId);
+        const {parameters:rawParameters, modelId} = req.body;
+        if (!(rawParameters && modelId && req.file)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
+        const parameters = JSON.parse(rawParameters);
+        const user = req.user as User;
+        const model = await this.modelController.findById(modelId);
         if (!model) return res.status(401).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Model does not exist.'});
         const image = model.image;
         const region = model.image.region;
@@ -255,8 +259,7 @@ export class ModelService extends HTTPService {
         // TODO: 여유가 있다면 프론트에서 해당 뷰를 만들어야 함, 후순위
         model.setParameters(JSON.parse(parameters));
 
-        const userId = parseInt(req.user['id']);
-        model.register = await this.userController.findById(userId);
+        model.register = req.user as User;
         model.uniqueName = imageTag;
         await this.modelController.save(model);
         console.log(model);
