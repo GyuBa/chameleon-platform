@@ -32,11 +32,13 @@ export class ModelService extends HTTPService {
 
     async handleExecute(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const {parameters:rawParameters, modelId} = req.body;
+        const {parameters: rawParameters, modelId} = req.body;
+
         if (!(rawParameters && modelId && req.file)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
         const parameters = JSON.parse(rawParameters);
-        const user = req.user as User;
-        const model = await this.modelController.findById(modelId);
+        const user: User = req.user as User;
+        const model: Model = await this.modelController.findById(modelId);
+
         if (!model) return res.status(401).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Model does not exist.'});
         const image = model.image;
         const region = model.image.region;
@@ -60,19 +62,22 @@ export class ModelService extends HTTPService {
         history.startedTime = new Date();
         history.executor = user;
         history.status = HistoryStatus.INITIALIZING;
+        history.setParameters(parameters);
         await this.historyController.save(history);
 
         setTimeout(() => this.createCachedContainers(docker, model));
         const config = history.model.getConfig();
         const paths = config.paths;
         await container.restart();
-        await container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerPath});
-        for (const path of Object.values(paths)) {
-            await DockerUtils.exec(container, `rm -rf "${path}"`);
-        }
 
+        const clearPaths = Object.values(paths).filter(p => p !== paths.script && p !== '/dev/null').sort();
+        for (const path of clearPaths) {
+            await DockerUtils.exec(container, `rm -rf "${path}" && mkdir -p $(dirname "${path}")`);
+        }
+        await container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerPath});
+        const port = PlatformServer.config.socketExternalPort ? PlatformServer.config.socketExternalPort : PlatformServer.config.socketPort;
         setTimeout(() =>
-            DockerUtils.exec(container, `chmod 777 "${paths.controllerPath}/controller" && "${paths.controllerPath}/controller" ${PlatformServer.config.socketExternalHost} ${PlatformServer.config.socketExternalPort} ${Buffer.from(model.path).toString('base64')} >> ${paths.debugLog} 2>&1`)
+            DockerUtils.exec(container, `chmod 777 "${paths.controllerPath}/controller" && "${paths.controllerPath}/controller" ${PlatformServer.config.socketExternalHost} ${port} ${history.id} >> ${paths.debugLog} 2>&1`)
         );
 
         history.status = HistoryStatus.RUNNING;
@@ -262,7 +267,7 @@ export class ModelService extends HTTPService {
         model.register = req.user as User;
         model.uniqueName = imageTag;
         await this.modelController.save(model);
-        console.log(model);
+        // console.log(model);
 
         setTimeout(() => this.createCachedContainers(docker, model));
         return res.status(200).send(RESPONSE_MESSAGE.OK);
