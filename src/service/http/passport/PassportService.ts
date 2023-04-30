@@ -41,7 +41,7 @@ export class PassportService extends HTTPService {
                 user = await this.userController.findById(id);
                 userCache.set(id, user);
             }
-            return done(null, new User());
+            return done(null, user);
         } catch (e) {
             // console.error(e);
             return done(e);
