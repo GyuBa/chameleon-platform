@@ -85,13 +85,14 @@ export class AuthService extends HTTPService {
 
     async userInfo(req: Request, res: Response, next: Function) {
         if (req.isAuthenticated()) {
-            res.status(200).send(await req.user);
+            console.log(req.user);
+            res.status(200).send(req.user);
         } else {
             res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         }
     }
 
-    async passportSignIn(req: Request, res: Response, next: Function) {
+    passportSignIn(req: Request, res: Response, next: Function) {
         passport.authenticate('local', (err, user, info) => {
             if (err) {
                 return next(err);

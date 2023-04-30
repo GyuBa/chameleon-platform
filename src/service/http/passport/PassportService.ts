@@ -4,6 +4,9 @@ import * as bcrypt from 'bcrypt';
 import {HTTPService} from '../../interfaces/http/HTTPService';
 import {Application} from 'express';
 import {Server} from 'http';
+import {User} from "../../../entities/User";
+
+const userCache = new Map<number, User>();
 
 export class PassportService extends HTTPService {
     init(app: Application, server: Server) {
@@ -23,23 +26,32 @@ export class PassportService extends HTTPService {
         app.use(passport.session());
     }
 
-    serializeUserHandler(user: any, done) {
+    serializeUserHandler(user: User, done) {
         return done(null, user.id);
     }
 
-    async deserializeUserHandler(id: any, done) {
+    async deserializeUserHandler(id: number, done) {
         try {
-            return done(null, await this.userController.findById(id));
+            let user = userCache.get(id);
+            if (user) {
+                setTimeout(async _ =>
+                    userCache.set(id, await this.userController.findById(id))
+                );
+            } else {
+                user = await this.userController.findById(id);
+                userCache.set(id, user);
+            }
+            return done(null, new User());
         } catch (e) {
             // console.error(e);
             return done(e);
         }
     }
 
-    async verifyHandler(userId, password, done) {
+    async verifyHandler(email, password, done) {
         try {
-            const user = await this.userController.findUserByEmail(userId);
-            if (!(userId && password)) {
+            const user = await this.userController.findUserByEmail(email);
+            if (!(email && password)) {
                 return done(null, false, {reason: {msg: 'non_field_errors'}});
             }
             if (!user) {

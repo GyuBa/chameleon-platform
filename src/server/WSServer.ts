@@ -1,18 +1,26 @@
 import {v4 as uuidv4} from 'uuid';
-import {RawData, ServerOptions, WebSocketServer} from 'ws';
+import {RawData} from 'ws';
 import WSManager from './manager/WSManager';
 import {IWSocket, WebSocketHandler} from '../types/chameleon-platform';
+import * as expressWs from "express-ws";
 
 export default class WSServer<SocketData, Manager extends WSManager> {
-    readonly server: WebSocketServer;
+    readonly app: expressWs.Application;
+    readonly route: string;
     readonly manager: Manager;
     readonly sockets: (IWSocket & { data: SocketData })[] = [];
     readonly socketsMap: { [id: string]: IWSocket & { data: SocketData } } = {};
     readonly handlers: WebSocketHandler<any, any>[] = [];
 
-    constructor(options: ServerOptions, manager: Manager) {
-        this.server = new WebSocketServer(options);
-        this.server.on('connection', (socket: IWSocket & { data: SocketData }, req) => {
+    constructor(app: expressWs.Application, route: string, manager: Manager) {
+        this.app = app;
+        this.route = route;
+        this.manager = manager;
+        this.manager.init(this);
+    }
+
+    start() {
+        this.app.ws(this.route, (socket: IWSocket & { data: SocketData }, req) => {
             socket.id = uuidv4();
             socket.req = req;
             socket.data = {} as SocketData;
@@ -39,14 +47,11 @@ export default class WSServer<SocketData, Manager extends WSManager> {
                 delete this.socketsMap[socket.id];
             });
         });
-        this.manager = manager;
-        this.manager.init(this);
     }
 
     addHandler(handler: WebSocketHandler<any, any>) {
         this.handlers.push(handler);
     }
-
     removeHandler(handler: WebSocketHandler<any, any>) {
         const index = this.handlers.indexOf(handler);
         if (index > -1) {
