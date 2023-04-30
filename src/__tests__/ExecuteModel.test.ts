@@ -31,7 +31,7 @@ describe('Execute model', () => {
         }
     }, 2 * 60 * 1000);
 
-    // (chameleon-platform root에서) curl -O https://private_raw.abstr.net/mongle/image.png
+    // (chameleon-platform root에서) curl -O https://private_raw.abstr.net/mongle/input.png
     test('execute', async () => {
         const modelController = new ModelController(PlatformServer.source);
         const model = await modelController.findModelByUniqueName(modelName);
