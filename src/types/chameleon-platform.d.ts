@@ -45,7 +45,6 @@ export type DefaultWSData = {
 export type DefaultWSocket = IWSocket & { data: DefaultWSData };
 
 export type PlatformConfig = {
-    /* empty */
     dockerServers: { host: string, port: number }[];
     defaultDockerServer: string;
     socketExternalHost: string;
