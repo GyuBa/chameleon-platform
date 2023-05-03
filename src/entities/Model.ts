@@ -2,10 +2,12 @@ import {Column, Entity, JoinColumn, ManyToOne, OneToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {User} from './User';
 import {Image} from './Image';
-import {ModelConfig, ModelParameters} from '../types/chameleon-platform';
+import {ModelConfig} from '../types/chameleon-platform';
+import {SupportToData} from '../types/chameleon-platform.enum';
+import {EntityDataUtils} from '../utils/EntityDataUtils';
 
 @Entity()
-export class Model extends Common {
+export class Model extends Common implements SupportToData {
     @Column()
         uniqueName: string;
     @Column()
@@ -20,8 +22,7 @@ export class Model extends Common {
         register: User;
 
     @OneToOne(
-        type => Image,
-        image => image.model
+        type => Image
     )
     @JoinColumn()
         image: Image;
@@ -35,25 +36,26 @@ export class Model extends Common {
     @Column()
         outputType: string;
 
-    @Column()
-        parameters: string;
-    @Column()
-        config: string;
+    @Column({type: 'json'})
+        parameters: any;
 
+    @Column({type: 'json'})
+        config: ModelConfig;
 
-    getConfig(): ModelConfig {
-        return JSON.parse(this.config);
-    }
-
-    setConfig(config: ModelConfig) {
-        this.config = JSON.stringify(config);
-    }
-
-    getParameters(): ModelParameters {
-        return JSON.parse(this.parameters);
-    }
-
-    setParameters(parameters: ModelParameters) {
-        this.parameters = JSON.stringify(parameters);
+    toData() {
+        return EntityDataUtils.toData([
+            'id',
+            'createdTime',
+            'updatedTime',
+            'uniqueName',
+            'name',
+            'description',
+            'register',
+            'image',
+            'cacheSize',
+            'inputType',
+            'outputType',
+            'parameters',
+            'config'], this);
     }
 }
