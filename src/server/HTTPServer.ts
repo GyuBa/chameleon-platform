@@ -1,9 +1,8 @@
 import * as express from 'express';
-import {Application} from 'express';
 import * as http from 'http';
 import {Server} from 'http';
 import {HTTPHandler} from '../types/chameleon-platform';
-import * as expressWs from "express-ws";
+import * as expressWs from 'express-ws';
 
 export default class HTTPServer {
     readonly app: expressWs.Application;
@@ -13,6 +12,7 @@ export default class HTTPServer {
         const application = express();
         this.server = http.createServer(application);
         this.app = expressWs(application).app;
+        this.app.set('trust proxy', true);
     }
 
     addHandler(httpHandler: HTTPHandler) {
