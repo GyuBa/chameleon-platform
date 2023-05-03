@@ -7,7 +7,7 @@ export class WalletController extends BaseController<Wallet> {
         super(source, Wallet);
     }
 
-    async findWalletByUserId(userId: number) {
+    async findWalletByUserId(userId: number): Promise<Wallet> {
         try {
             const wallet = await this.repository.findOne({
                 where: {user: {id: userId}},
