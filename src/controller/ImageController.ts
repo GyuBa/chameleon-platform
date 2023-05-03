@@ -7,12 +7,12 @@ export class ImageController extends BaseController<Image> {
         super(source, Image);
     }
 
-    public static selectWithJoin(queryBuilder: SelectQueryBuilder<any>) {
+    public static selectWithJoin(queryBuilder: SelectQueryBuilder<any>): SelectQueryBuilder<any> {
         return queryBuilder
             .leftJoinAndSelect('Image.region', 'Region');
     }
 
-    async findImageByRepositoryAndTag(repository: string, tag: string) {
+    async findImageByRepositoryAndTag(repository: string, tag: string): Promise<Image> {
         try {
             return await ImageController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
@@ -25,7 +25,7 @@ export class ImageController extends BaseController<Image> {
         }
     }
 
-    async findAllImageByRepositoryAndTagLike(repository: string, tag: string) {
+    async findAllImageByRepositoryAndTagLike(repository: string, tag: string): Promise<Image[]> {
         try {
             return await ImageController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()

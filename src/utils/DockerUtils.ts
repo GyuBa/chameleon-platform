@@ -1,17 +1,29 @@
 import * as Dockerode from 'dockerode';
-import {Container} from "dockerode";
+import {Container} from 'dockerode';
 
 export class DockerUtils {
 
-    static exec(container: Container, command: string) {
-        return new Promise(resolve => {
+    static exec(container: Container, command: string, keepOutput?: boolean) {
+        return new Promise<string>((resolve, reject) => {
             container.exec({
-                Cmd: ['/bin/bash', '-c', command],
+                Cmd: ['/bin/sh', '-c', command],
                 AttachStdin: true,
-                AttachStdout: true
+                AttachStdout: true,
             }, async (err, exec) => {
-                const stream = await exec?.start({hijack: true, stdin: true});
-                stream?.on('finish', resolve);
+                if (err || !exec) {
+                    reject(err);
+                    return;
+                }
+                let output = '';
+                const stream = await exec.start({hijack: true, stdin: true});
+                if (keepOutput) {
+                    stream?.on('data', (chunk: Buffer) => {
+                        output += chunk.toString();
+                    });
+                }
+                stream?.on('end', () => {
+                    resolve(output);
+                });
             });
         });
     }

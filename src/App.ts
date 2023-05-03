@@ -11,7 +11,6 @@ import DefaultSocketManager from './server/impl/manager/DefaultSocketManager';
 import PlatformServer from './server/core/PlatformServer';
 import DefaultWSHandler from './server/impl/handler/DefaultWSHandler';
 import DefaultSocketHandler from './server/impl/handler/DefaultSocketHandler';
-import {WSService} from './service/http/WSService';
 import {ExpressService} from './service/http/ExpressService';
 import {RegionService} from "./service/http/RegionService";
 
@@ -53,7 +52,6 @@ import {RegionService} from "./service/http/RegionService";
     httpServer.addHandler(new AuthService());
     httpServer.addHandler(new PointService());
     httpServer.addHandler(new ModelService());
-    httpServer.addHandler(new WSService());
     httpServer.addHandler(new RegionService());
 
     await PlatformServer.start();

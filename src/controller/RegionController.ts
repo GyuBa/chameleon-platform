@@ -1,13 +1,13 @@
 import {Region} from '../entities/Region';
 import {BaseController} from './interfaces/BaseController';
-import {DataSource, SelectQueryBuilder} from 'typeorm';
+import {DataSource} from 'typeorm';
 
 export class RegionController extends BaseController<Region> {
     constructor(source: DataSource) {
         super(source, Region);
     }
 
-    async findRegionByHost(host: string) {
+    async findRegionByHost(host: string): Promise<Region> {
         try {
             return await this.repository
                 .createQueryBuilder()
@@ -20,7 +20,7 @@ export class RegionController extends BaseController<Region> {
         }
     }
 
-    async findRegionByPort(port: number) {
+    async findRegionByPort(port: number): Promise<Region> {
         try {
             return await this.repository
                 .createQueryBuilder('region')
@@ -33,14 +33,14 @@ export class RegionController extends BaseController<Region> {
         }
     }
 
-    async findRegionByName(name: string) {
+    async findRegionByName(name: string): Promise<Region> {
         try {
             return await this.repository
                 .createQueryBuilder()
                 .select()
                 .where('name=:name', {name})
                 .getOne();
-        } catch(e) {
+        } catch (e) {
             console.error(e);
             throw e;
         }

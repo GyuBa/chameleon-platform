@@ -15,74 +15,88 @@ import {MulterUtils} from '../../utils/MulterUtils';
 import {HistoryStatus} from '../../types/chameleon-platform.enum';
 import PlatformServer from '../../server/core/PlatformServer';
 import {User} from '../../entities/User';
+import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
 
 export class ModelService extends HTTPService {
+    private containerCachingLock = new Map<number, boolean>();
+
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.post('/upload', images.single('file'), this.handleUpload);
-        router.post('/execute', inputs.single('input'), this.handleExecute);
-        router.get('/list', this.handleList);
-        router.get('/info', this.handleInfo);
-        router.put('/update', this.handleUpdate);
+        router.post('/upload', images.single('file'), HTTPLogUtils.addBeginLogger(this.handleUpload, 'Model:upload'));
+        router.post('/execute', inputs.single('input'), HTTPLogUtils.addBeginLogger(this.handleExecute, 'Model:execute'));
+        router.get('/list', HTTPLogUtils.addBeginLogger(this.handleList, 'Model:list'));
+        router.get('/new-list', HTTPLogUtils.addBeginLogger(this.handleNewList, 'Model:new-list'));
+        router.get('/info', HTTPLogUtils.addBeginLogger(this.handleInfo, 'Model:info'));
+        router.put('/update', HTTPLogUtils.addBeginLogger(this.handleUpdate, 'Model:update'));
         app.use('/model', router);
     }
 
     async handleExecute(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const {parameters: rawParameters, modelId} = req.body;
-
         if (!(rawParameters && modelId && req.file)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
         const parameters = JSON.parse(rawParameters);
         const user: User = req.user as User;
         const model: Model = await this.modelController.findById(modelId);
 
         if (!model) return res.status(401).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Model does not exist.'});
-        const image = model.image;
-        const region = model.image.region;
-        const docker = new Dockerode(region);
 
-        let history: History;
-        let container: Container;
-        const cachedHistories = await this.historyController.findAllByImageAndStatus(image, HistoryStatus.CACHED);
-        if (cachedHistories.length > 0) {
-            history = cachedHistories.shift();
-            container = await docker.getContainer(history.containerId);
-        } else {
-            history = new History();
-            container = await docker.createContainer({
-                Image: image.uniqueId
-            });
-            history.containerId = container.id;
+        setTimeout(async _ => {
+            const image = model.image;
+            const region = model.image.region;
+            const docker = new Dockerode(region);
+            const file = req.file;
+
+            let history: History;
+            let container: Container;
+
+            const cachedHistory = await this.historyController.findAndUseCache(image);
+            if (cachedHistory) {
+                console.log(`[${model.name}] Found cached containers`);
+                history = cachedHistory;
+                container = await docker.getContainer(history.containerId);
+                await container.restart();
+            } else {
+                console.log(`[${model.name}] No cached containers`);
+                const {
+                    history: newHistory,
+                    container: newContainer
+                } = await this.createCachedContainer(docker, model, true);
+                history = newHistory;
+                container = newContainer;
+            }
+
+            history.startedTime = new Date();
+            history.executor = user;
+            history.status = HistoryStatus.INITIALIZING;
+            history.inputPath = file.path;
+            history.inputInfo = {originalName: file.originalname, size: file.size, mimeType: file.mimetype};
+            history.parameters = parameters;
             await this.historyController.save(history);
-            history.model = model;
-        }
-        history.startedTime = new Date();
-        history.executor = user;
-        history.status = HistoryStatus.INITIALIZING;
-        history.setParameters(parameters);
-        await this.historyController.save(history);
+            // TODO: TIMING - INITIALIZING
+            let targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history, PlatformServer.wsServer.manager.getAuthenticatedSockets());
+            PlatformServer.wsServer.manager.sendUpdateHistory(history, targetSockets);
+            // PlatformServer.wsServer.manager.
+            // targetSockets
 
-        setTimeout(() => this.createCachedContainers(docker, model));
-        const config = history.model.getConfig();
-        const paths = config.paths;
-        await container.restart();
+            setTimeout(() => this.createCachedContainers(docker, model));
+            const {paths} = history.model.config;
+            const port = PlatformServer.config.socketExternalPort ? PlatformServer.config.socketExternalPort : PlatformServer.config.socketPort;
 
-        const clearPaths = Object.values(paths).filter(p => p !== paths.script && p !== '/dev/null').sort();
-        for (const path of clearPaths) {
-            await DockerUtils.exec(container, `rm -rf "${path}" && mkdir -p $(dirname "${path}")`);
-        }
-        await container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerPath});
-        const port = PlatformServer.config.socketExternalPort ? PlatformServer.config.socketExternalPort : PlatformServer.config.socketPort;
-        setTimeout(() =>
-            DockerUtils.exec(container, `chmod 777 "${paths.controllerPath}/controller" && "${paths.controllerPath}/controller" ${PlatformServer.config.socketExternalHost} ${port} ${history.id} >> ${paths.debugLog} 2>&1`)
-        );
+            setTimeout(() =>
+                DockerUtils.exec(container, `chmod 777 "${paths.controllerDirectory}/controller" && "${paths.controllerDirectory}/controller" ${PlatformServer.config.socketExternalHost} ${port} ${history.id} >> ${paths.debugLog} 2>&1`)
+            );
 
-        history.status = HistoryStatus.RUNNING;
-        history.startedTime = new Date();
-        await this.historyController.save(history);
+            history.status = HistoryStatus.RUNNING;
+            history.startedTime = new Date();
+            await this.historyController.save(history);
+            // TODO: TIMING - RUNNING
+            targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history, PlatformServer.wsServer.manager.getAuthenticatedSockets());
+            PlatformServer.wsServer.manager.sendUpdateHistory(history, targetSockets);
+        });
 
         return res.status(200).send({msg: 'ok'});
     }
@@ -105,6 +119,13 @@ export class ModelService extends HTTPService {
         return res.status(200).send(responseData);
     }
 
+    async handleNewList(req: Request, res: Response, next: Function) {
+        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        const responseData = (await this.modelController.getAll()).map(m => m.toData());
+        return res.status(200).send(responseData);
+    }
+
+    // TODO: newList로 마이그레이션
     async handleInfo(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const inputUniqueName = String(req.query?.uniqueName);
@@ -133,6 +154,7 @@ export class ModelService extends HTTPService {
         }
     }
 
+    // TODO: 구조 개선
     async handleUpdate(req: Request, res: Response, next: Function) {
         const {modelId, repository, modelName, description, inputType, outputType} = req.body;
 
@@ -196,21 +218,50 @@ export class ModelService extends HTTPService {
         }
     }
 
-    async createCachedContainer(docker: Dockerode, model: Model) {
-        const cachedContainer = await docker.createContainer({
-            Image: model.image.uniqueId
+    async addControllerToContainer(container: Container, model: Model) {
+        const config = model.config;
+        const {paths} = config;
+
+        const excludePaths = [paths.script, paths.controllerDirectory, '/dev/null'];
+        const clearPaths = Object.values(paths).filter(p => !excludePaths.includes(p)).sort();
+        const initCommand = [`mkdir -p ${paths.controllerDirectory}`, ...clearPaths.map(p => `rm -rf "${p}" && mkdir -p $(dirname "${p}")`)].join(' && ');
+        await DockerUtils.exec(container, initCommand);
+
+        const dependencies = container.putArchive(PlatformServer.config.dependenciesPath, {path: '/'});
+        const controller = container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerDirectory});
+        await Promise.all([dependencies, container]);
+    }
+
+    async createCachedContainer(docker: Dockerode, model: Model, keepRunning?: boolean) {
+        const container = await docker.createContainer({
+            Image: model.image.uniqueId,
+            Tty: true
         });
-        const cachedHistory = new History();
-        cachedHistory.containerId = cachedContainer.id;
-        cachedHistory.status = HistoryStatus.CACHED;
-        cachedHistory.model = model;
-        return await this.historyController.save(cachedHistory);
+        const history = new History();
+        history.containerId = container.id;
+        history.status = HistoryStatus.CACHED;
+        history.model = model;
+
+        await container.start();
+        await this.addControllerToContainer(container, model);
+        if (!keepRunning) {
+            await container.stop();
+        }
+        await this.historyController.save(history);
+        return {history, container};
     }
 
     async createCachedContainers(docker: Dockerode, model: Model) {
-        const cachedSize = (await this.historyController.findAllByImageAndStatus(model.image, HistoryStatus.CACHED)).length;
-        const tasks = Array.from({length: model.cacheSize - cachedSize}, () => this.createCachedContainer(docker, model));
-        return await Promise.all(tasks);
+        if (!this.containerCachingLock.get(model.id)) {
+            this.containerCachingLock.set(model.id, true);
+            const cachedSize = (await this.historyController.findAllByImageAndStatus(model.image, HistoryStatus.CACHED)).length;
+            const generateSize = model.cacheSize - cachedSize;
+            console.log(`[${model.name}] Start creating ${generateSize} cached containers`);
+            const tasks = Array.from({length: model.cacheSize - cachedSize}, () => this.createCachedContainer(docker, model));
+            await Promise.all(tasks);
+            console.log(`[${model.name}] End creating ${generateSize} cached containers`);
+            this.containerCachingLock.set(model.id, false);
+        }
     }
 
     async handleUpload(req: Request, res: Response, next: Function) {
@@ -248,26 +299,26 @@ export class ModelService extends HTTPService {
         model.outputType = outputType;
         model.image = await this.imageController.save(image);
         model.cacheSize = region.cacheSize;
-        model.setConfig({
+        model.config = {
             paths: {
                 script: '/opt/mctr/run',
                 input: '/opt/mctr/i/raw',
                 inputInfo: '/opt/mctr/i/info',
+                parameters: '/opt/mctr/i/params',
                 output: '/opt/mctr/o/raw',
                 outputInfo: '/opt/mctr/o/info',
                 outputDescription: '/opt/mctr/o/desc',
-                controllerPath: '/opt/mctr/',
+                controllerDirectory: '/opt/mctr/',
                 debugLog: '/dev/null'
             }
-        });
+        };
         // model-executor의 model configuration 기능 migration
         // TODO: 여유가 있다면 프론트에서 해당 뷰를 만들어야 함, 후순위
-        model.setParameters(JSON.parse(parameters));
+        model.parameters = JSON.parse(parameters);
 
         model.register = req.user as User;
         model.uniqueName = imageTag;
         await this.modelController.save(model);
-        // console.log(model);
 
         setTimeout(() => this.createCachedContainers(docker, model));
         return res.status(200).send(RESPONSE_MESSAGE.OK);

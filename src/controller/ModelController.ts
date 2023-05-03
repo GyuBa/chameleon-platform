@@ -9,15 +9,15 @@ export class ModelController extends BaseController<Model> {
         super(source, Model);
     }
 
-    public static selectWithJoin(queryBuilder: SelectQueryBuilder<any>) {
+    public static selectWithJoin(queryBuilder: SelectQueryBuilder<any>): SelectQueryBuilder<any> {
         queryBuilder = queryBuilder
-            .leftJoinAndSelect('Model.register', 'User')
+            .leftJoinAndSelect('Model.register', 'Register')
             .leftJoinAndSelect('Model.image', 'Image');
         queryBuilder = ImageController.selectWithJoin(queryBuilder);
         return queryBuilder;
     }
 
-    async findById(id: number) {
+    async findById(id: number): Promise<Model> {
         try {
             return await ModelController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
@@ -30,7 +30,7 @@ export class ModelController extends BaseController<Model> {
     }
 
     // image update 시 update 가 아니라 기존 image 재 등록
-    async findModelByImage(image: Image) {
+    async findModelByImage(image: Image): Promise<Model> {
         try {
             return await await ModelController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
@@ -42,7 +42,7 @@ export class ModelController extends BaseController<Model> {
         }
     }
 
-    async findModelByUniqueName(uniqueName: string) {
+    async findModelByUniqueName(uniqueName: string): Promise<Model> {
         try {
             return await await ModelController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
@@ -54,7 +54,7 @@ export class ModelController extends BaseController<Model> {
         }
     }
 
-    async getAll() {
+    async getAll(): Promise<Model[]> {
         try {
             return await ModelController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
