@@ -36,7 +36,7 @@ describe('Execute model', () => {
     }, 2 * 60 * 1000);
 
     // (chameleon-platform root에서) curl -O http://files.chameleon.best/samples/image.png
-    test('execute', async () => {
+    const testExecute = async () => {
         const modelController = new ModelController(PlatformServer.source);
         const model = await modelController.findModelByUniqueName(modelName);
 
@@ -52,49 +52,19 @@ describe('Execute model', () => {
         } catch (e) {
             fail(e.response.data);
         }
-    }, 2 * 60 * 1000);
+    };
+
+    test('execute', testExecute, 2 * 60 * 1000);
 
     test('wait for caching1', async () => {
         await sleep(15 * 1000);
     }, 2 * 60 * 1000);
 
-    test('execute with cache1', async () => {
-        const modelController = new ModelController(PlatformServer.source);
-        const model = await modelController.findModelByUniqueName(modelName);
-
-        const formData = new FormData();
-        formData.append('modelId', model.id);
-        formData.append('parameters', JSON.stringify({param1: 'example1', param2: 2}));
-        // JSONForm의 결과물
-        formData.append('input', fs.createReadStream('image.png'));
-        // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
-        try {
-            const result = await TestingManager.axios.post('/model/execute', formData).then(r => r.data);
-            console.log(result);
-        } catch (e) {
-            fail(e.response.data);
-        }
-    }, 2 * 60 * 1000);
+    test('execute with cache1', testExecute, 2 * 60 * 1000);
 
     test('wait for caching2', async () => {
         await sleep(15 * 1000);
     }, 2 * 60 * 1000);
 
-    test('execute with cache2', async () => {
-        const modelController = new ModelController(PlatformServer.source);
-        const model = await modelController.findModelByUniqueName(modelName);
-
-        const formData = new FormData();
-        formData.append('modelId', model.id);
-        formData.append('parameters', JSON.stringify({param1: 'example1', param2: 2}));
-        // JSONForm의 결과물
-        formData.append('input', fs.createReadStream('image.png'));
-        // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
-        try {
-            const result = await TestingManager.axios.post('/model/execute', formData).then(r => r.data);
-            console.log(result);
-        } catch (e) {
-            fail(e.response.data);
-        }
-    }, 2 * 60 * 1000);
+    test('execute with cache2', testExecute, 2 * 60 * 1000);
 });
