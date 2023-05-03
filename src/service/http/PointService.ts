@@ -3,17 +3,18 @@ import {Application, Request, Response} from 'express';
 import {RESPONSE_MESSAGE} from '../../constant/Constants';
 import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
+import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 
 // TODO: management exception
 export class PointService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.get('/', this.getUserPoint);
-        router.post('/update', this.updatePoint);
+        router.get('/my', HTTPLogUtils.addBeginLogger(this.handleMy, 'Point:my'));
+        router.post('/update', HTTPLogUtils.addBeginLogger(this.handleMy, 'Point:update'));
         app.use('/point', router);
     }
 
-    async getUserPoint(req: Request, res: Response) {
+    async handleMy(req: Request, res: Response, next: Function) {
         const {id} = req.query;
         if (!id) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
         console.log(id);
@@ -23,7 +24,7 @@ export class PointService extends HTTPService {
         });
     }
 
-    async getUserWallet(req: Request, res: Response) {
+    async getUserWallet(req: Request, res: Response, next: Function) {
         const {id} = req.query;
         if (!req.isAuthenticated()) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
         if (!id) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
@@ -33,7 +34,8 @@ export class PointService extends HTTPService {
         });
     }
 
-    async updatePoint(req: Request, res: Response) {
+    // TODO: 리팩토링 필요
+    async handleUpdate(req: Request, res: Response, next: Function) {
         const {amount} = req.body;
         if (!req.isAuthenticated()) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
         if (!amount) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
