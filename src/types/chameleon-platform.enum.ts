@@ -15,6 +15,7 @@ export enum WSMessageType {
     UpdateModels = 'UpdateModels',
     UpdateHistory = 'UpdateHistory',
     UpdateHistories = 'UpdateHistories'
+
 }
 
 export enum SocketMessageType {
@@ -23,11 +24,13 @@ export enum SocketMessageType {
     FileWait = 'FileWait',
     FileReceiveEnd = 'FileReceiveEnd',
     Terminal = 'Terminal',
+    TerminalResize = 'TerminalResize',
     ProcessEnd = 'ProcessEnd',
     File = 'File',
     RequestFile = 'RequestFile',
     WaitReceive = 'WaitReceive',
     LaunchModel = 'LaunchModel'
+
 }
 
 export enum SocketReceiveMode {
