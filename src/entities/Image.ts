@@ -1,10 +1,11 @@
-import {Column, Entity, ManyToOne, OneToOne, Unique} from 'typeorm';
+import {Column, Entity, ManyToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Region} from './Region';
-import {Model} from './Model';
+import {SupportToData} from '../types/chameleon-platform.enum';
+import {EntityDataUtils} from '../utils/EntityDataUtils';
 
 @Entity()
-export class Image extends Common {
+export class Image extends Common implements SupportToData {
     @Column()
         repository: string;
 
@@ -21,12 +22,18 @@ export class Image extends Common {
     )
         region: Region;
 
-    @OneToOne(
-        () => Model,
-        (model) => model.image
-    )
-        model: Model;
+    getRepositoryTagString() {
+        return `${this.repository}:${this.tag}`;
+    }
 
+    toData() {
+        return EntityDataUtils.toData([
+            'id',
+            'repository',
+            'tag',
+            'path',
+            'uniqueId',
+            'region',
+        ], this);
+    }
 }
-
-// docker - image
