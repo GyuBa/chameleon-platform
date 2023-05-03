@@ -5,12 +5,14 @@ import {DataSource} from 'typeorm';
 
 export class BaseController<Entity extends ObjectLiteral & { id: number | string }> {
     public repository: Repository<Entity>;
+    protected source: DataSource;
 
     constructor(source: DataSource, target: EntityTarget<Entity>) {
+        this.source = source;
         this.repository = source.getRepository(target);
     }
 
-    async save(entity: Entity) {
+    async save(entity: Entity): Promise<Entity> {
         try {
             return await this.repository.save(entity);
         } catch (e) {
@@ -19,7 +21,7 @@ export class BaseController<Entity extends ObjectLiteral & { id: number | string
         }
     }
 
-    async findById(id: number) {
+    async findById(id: number): Promise<Entity> {
         try {
             return await this.repository
                 .createQueryBuilder()
@@ -50,7 +52,7 @@ export class BaseController<Entity extends ObjectLiteral & { id: number | string
         }
     }
 
-    async getAll() {
+    async getAll(): Promise<Entity[]> {
         try {
             return await this.repository.find();
         } catch (e) {
