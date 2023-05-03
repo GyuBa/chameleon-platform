@@ -11,8 +11,8 @@ import {MysqlConnectionOptions} from 'typeorm/driver/mysql/MysqlConnectionOption
 import * as stream from 'stream';
 import {Terminal} from 'xterm-headless';
 import {SerializeAddon} from 'xterm-addon-serialize';
-import {SocketReceiveMode} from "./chameleon-platform.enum";
-import {History} from "../entities/History";
+import {SocketReceiveMode} from './chameleon-platform.enum';
+import {History} from '../entities/History';
 
 export type Resolver = (value?: unknown) => void;
 type ReadStreamClose = (callback?: (err?: NodeJS.ErrnoException | null) => void) => void;
@@ -43,6 +43,7 @@ export type DefaultSocketServer = SocketServer<DefaultSocketData, DefaultSocketM
 export type DefaultSocketData = {
     terminalBuffer: string;
     terminalBufferingLock: boolean;
+    terminalDatabaseLock: boolean;
     buffer: string;
     receiveMode: SocketReceiveMode;
     receivedBytes: number;
@@ -94,6 +95,11 @@ export type ModelConfig = {
         controllerDirectory: string;
         debugLog: string;
     }
+}
+
+export type TerminalResizeOption = {
+    rows: number;
+    cols: number;
 }
 
 export type SocketHandle = (client: DefaultSocketServer, socket: DefaultSocket, message: any) => void;
