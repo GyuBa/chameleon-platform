@@ -40,6 +40,7 @@ export default class PlatformServer {
                 socketExternalHost: '',
                 socketPort: 5050,
                 controllerPath: '../chameleon-controller/controller.tar',
+                dependenciesPath: '../chameleon-controller/dependencies.tar',
                 sessionSecret: crypto.randomBytes(32).toString('hex'),
                 db: {
                     type: 'mysql',
@@ -52,6 +53,9 @@ export default class PlatformServer {
             }, null, 4), 'utf8');
         }
         PlatformServer.config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+        if (!fs.existsSync('uploads/outputs')) {
+            fs.mkdirSync('uploads/outputs', {recursive: true});
+        }
     }
 
     static async initializeDB(ignoreError = false) {
