@@ -3,7 +3,7 @@ export enum HistoryStatus {
     INITIALIZING = 'initializing',
     RUNNING = 'running',
     ERROR = 'error',
-    OFF = 'off',
+    FINISHED = 'finished',
 }
 
 export enum WSMessageType {
@@ -33,4 +33,8 @@ export enum SocketMessageType {
 export enum SocketReceiveMode {
     JSON,
     FILE
+}
+
+export interface SupportToData {
+    toData(): any;
 }
