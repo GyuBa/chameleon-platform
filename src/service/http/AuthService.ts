@@ -6,49 +6,17 @@ import {User} from '../../entities/User';
 import {RESPONSE_MESSAGE} from '../../constant/Constants';
 import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
+import {HTTPLogUtils} from "../../utils/HTTPLogUtils";
 
 export class AuthService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.post('/sign-in', this.passportSignIn);
-        router.post('/sign-up', this.userSignUp);
-        router.get('/info', this.userInfo);
-        router.post('/modify-password', this.passwordModify);
-        router.post('/sign-in-legacy', this.userSignIn);
-        router.delete('/sign-out', this.signOut);
-        // TODO: 삭제 요망
+        router.post('/sign-in', HTTPLogUtils.addBeginLogger(this.handleSignIn, 'Auth:sign-in'));
+        router.post('/sign-up', HTTPLogUtils.addBeginLogger(this.handleSignUp, 'Auth:sign-up'));
+        router.get('/info', HTTPLogUtils.addBeginLogger(this.handleInfo, 'Auth:info'));
+        router.post('/modify-password', HTTPLogUtils.addBeginLogger(this.handleModifyPassword, 'Auth:modify-password'));
+        router.delete('/sign-out', HTTPLogUtils.addBeginLogger(this.handleSignOut, 'Auth:sign-out'));
         app.use('/auth', router);
-    }
-
-    /**
-     * provides user sign-in
-     * req.body must include { password, email}
-     * msg : {
-     *     401 - non_field_errors
-     *     401 - unable_credential_errors
-     *     200 - OK
-     * }
-     * @param {Request} req - Express Request
-     * @param {Response} res - Express Response
-     * @param {Function} next - Callback Function
-     */
-    async userSignIn(req: Request, res: Response, next: Function) {
-        const {email, password} = req.body;
-        if (!(email && password)) {
-            res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
-            return;
-        }
-        const user = await this.userController.findUserByEmail(email);
-        const result = await bcrypt.compare(password, user.password);
-        if (result) {
-            res.status(200).send({
-                'id': user.id,
-                'email': user.email,
-                'username': user.username
-            });
-        } else {
-            res.status(401).send(RESPONSE_MESSAGE.UNABLE_CREDENTIAL);
-        }
     }
 
     /**
@@ -63,7 +31,7 @@ export class AuthService extends HTTPService {
      * @param {Response} res - Express Response
      * @param {Function} next - Callback Function
      */
-    async userSignUp(req: Request, res: Response, next: Function) {
+    async handleSignUp(req: Request, res: Response, next: Function) {
         if (!(req.body.username && req.body.password && req.body.email)) {
             res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
             return;
@@ -83,7 +51,7 @@ export class AuthService extends HTTPService {
         res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 
-    async userInfo(req: Request, res: Response, next: Function) {
+    async handleInfo(req: Request, res: Response, next: Function) {
         if (req.isAuthenticated()) {
             console.log(req.user);
             res.status(200).send(req.user);
@@ -92,7 +60,7 @@ export class AuthService extends HTTPService {
         }
     }
 
-    passportSignIn(req: Request, res: Response, next: Function) {
+    handleSignIn(req: Request, res: Response, next: Function) {
         passport.authenticate('local', (err, user, info) => {
             if (err) {
                 return next(err);
@@ -111,7 +79,7 @@ export class AuthService extends HTTPService {
     }
 
 
-    async passwordModify(req: Request, res: Response, next: Function) {
+    async handleModifyPassword(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) {
             return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         }
@@ -131,7 +99,7 @@ export class AuthService extends HTTPService {
     }
 
 
-    async signOut(req: Request, res: Response, next: Function) {
+    async handleSignOut(req: Request, res: Response, next: Function) {
         let isSessionError = false;
 
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
