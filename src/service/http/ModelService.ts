@@ -128,7 +128,7 @@ export class ModelService extends HTTPService {
     // TODO: newList로 마이그레이션
     async handleInfo(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const {uniqueName: inputUniqueName} = req.body;
+        const inputUniqueName = String(req.query?.uniqueName);
         if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
         try {
             const modelResult = await this.modelController.findModelByUniqueName(inputUniqueName);
