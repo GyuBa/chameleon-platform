@@ -18,8 +18,7 @@ export default class SocketServer<SocketData, Manager extends SocketManager> {
             this.socketsMap[socket.id] = socket;
             this.sockets.push(socket);
 
-            const addressInfo = socket.address() as SocketAddress;
-            console.log('SocketServer: ' + addressInfo.address + ' connected.');
+            console.log(`SocketServer: ${socket.remoteAddress}:${socket.remotePort} connected.`);
 
             this.handlers.forEach(h => h.onReady?.(this, socket));
 
