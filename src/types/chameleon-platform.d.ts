@@ -12,6 +12,8 @@ import * as stream from 'stream';
 import {Terminal} from 'xterm-headless';
 import {SerializeAddon} from 'xterm-addon-serialize';
 import {SocketReceiveMode} from "./chameleon-platform.enum";
+import {History} from "../entities/History";
+
 export type Resolver = (value?: unknown) => void;
 type ReadStreamClose = (callback?: (err?: NodeJS.ErrnoException | null) => void) => void;
 export type ISocket = Socket & { id: string };
@@ -40,7 +42,7 @@ export interface WebSocketHandler<Server, Socket> {
 export type DefaultSocketServer = SocketServer<DefaultSocketData, DefaultSocketManager>;
 export type DefaultSocketData = {
     terminalBuffer: string;
-    waitTerminalFlushTimeout: boolean;
+    terminalBufferingLock: boolean;
     buffer: string;
     receiveMode: SocketReceiveMode;
     receivedBytes: number;
@@ -49,7 +51,7 @@ export type DefaultSocketData = {
     readStream: stream.Readable & { close?: ReadStreamClose };
     fileReceiveResolver: Resolver;
     fileSendResolver: Resolver;
-    modelPath: string;
+    history: History;
     terminal: Terminal;
     terminalSerializer: SerializeAddon;
 };
@@ -57,7 +59,7 @@ export type DefaultSocket = ISocket & { data: DefaultSocketData };
 
 export type DefaultWSServer = WSServer<DefaultWSData, DefaultWSManager>;
 export type DefaultWSData = {
-    /* empty */
+    path: string;
 };
 export type DefaultWSocket = IWSocket & { data: DefaultWSData };
 
@@ -68,6 +70,7 @@ export type PlatformConfig = {
     socketExternalPort: number;
     sessionSecret: string;
     controllerPath: string;
+    dependenciesPath: string;
     socketPort: number;
     httpPort: number;
     db: MysqlConnectionOptions;
@@ -84,10 +87,14 @@ export type ModelConfig = {
         script: string;
         input: string;
         inputInfo: string;
+        parameters: string;
         output: string;
         outputInfo: string;
         outputDescription: string;
-        controllerPath: string;
+        controllerDirectory: string;
         debugLog: string;
     }
 }
+
+export type SocketHandle = (client: DefaultSocketServer, socket: DefaultSocket, message: any) => void;
+export type WebSocketHandle = (server: DefaultWSServer, socket: DefaultWSocket, data: any) => void;
