@@ -1,11 +1,11 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique} from 'typeorm';
+import {Column, Entity, Unique} from 'typeorm';
 import {Common} from './interfaces/Common';
-import {Model} from './Model';
+import {SupportToData} from '../types/chameleon-platform.enum';
+import {EntityDataUtils} from '../utils/EntityDataUtils';
 
 @Entity()
 @Unique(['email'])
-export class User extends Common {
-    // TODO: Options 제거할 수 있으면 날릴 것
+export class User extends Common implements SupportToData {
     @Column()
         email: string;
 
@@ -14,4 +14,12 @@ export class User extends Common {
 
     @Column()
         username: string;
+
+    toData() {
+        return EntityDataUtils.toData([
+            'id',
+            'email',
+            'username',
+        ], this);
+    }
 }
