@@ -3,11 +3,9 @@ import {Common} from './interfaces/Common';
 import {User} from './User';
 import {Image} from './Image';
 import {ModelConfig} from '../types/chameleon-platform';
-import {SupportToData} from '../types/chameleon-platform.enum';
-import {EntityDataUtils} from '../utils/EntityDataUtils';
 
 @Entity()
-export class Model extends Common implements SupportToData {
+export class Model extends Common{
     @Column()
         uniqueName: string;
     @Column()
@@ -41,21 +39,4 @@ export class Model extends Common implements SupportToData {
 
     @Column({type: 'json'})
         config: ModelConfig;
-
-    toData() {
-        return EntityDataUtils.toData([
-            'id',
-            'createdTime',
-            'updatedTime',
-            'uniqueName',
-            'name',
-            'description',
-            'register',
-            'image',
-            'cacheSize',
-            'inputType',
-            'outputType',
-            'parameters',
-            'config'], this);
-    }
 }

@@ -1,11 +1,9 @@
 import {Column, Entity, Unique} from 'typeorm';
 import {Common} from './interfaces/Common';
-import {SupportToData} from '../types/chameleon-platform.enum';
-import {EntityDataUtils} from '../utils/EntityDataUtils';
 
 @Entity()
 @Unique(['email'])
-export class User extends Common implements SupportToData {
+export class User extends Common {
     @Column()
         email: string;
 
@@ -14,12 +12,4 @@ export class User extends Common implements SupportToData {
 
     @Column()
         username: string;
-
-    toData() {
-        return EntityDataUtils.toData([
-            'id',
-            'email',
-            'username',
-        ], this);
-    }
 }

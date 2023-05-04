@@ -1,11 +1,9 @@
 import {Column, Entity, ManyToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Region} from './Region';
-import {SupportToData} from '../types/chameleon-platform.enum';
-import {EntityDataUtils} from '../utils/EntityDataUtils';
 
 @Entity()
-export class Image extends Common implements SupportToData {
+export class Image extends Common {
     @Column()
         repository: string;
 
@@ -24,16 +22,5 @@ export class Image extends Common implements SupportToData {
 
     getRepositoryTagString() {
         return `${this.repository}:${this.tag}`;
-    }
-
-    toData() {
-        return EntityDataUtils.toData([
-            'id',
-            'repository',
-            'tag',
-            'path',
-            'uniqueId',
-            'region',
-        ], this);
     }
 }

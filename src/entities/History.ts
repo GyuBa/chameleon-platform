@@ -2,11 +2,10 @@ import {Column, Entity, JoinColumn, ManyToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Model} from './Model';
 import {User} from './User';
-import {HistoryStatus, SupportToData} from '../types/chameleon-platform.enum';
-import {EntityDataUtils} from '../utils/EntityDataUtils';
+import {HistoryStatus} from '../types/chameleon-platform.enum';
 
 @Entity()
-export class History extends Common implements SupportToData {
+export class History extends Common{
     @Column({type: 'enum', enum: HistoryStatus})
         status: string;
     @Column()
@@ -46,25 +45,5 @@ export class History extends Common implements SupportToData {
     @Column({nullable: true, type: 'text'})
         terminal: string;
 
-
-    toData() {
-        return EntityDataUtils.toData([
-            'id',
-            'createdTime',
-            'updatedTime',
-            'status',
-            'inputPath',
-            'inputInfo',
-            'outputPath',
-            'outputInfo',
-            'description',
-            'executor',
-            'model',
-            'startedTime',
-            'endedTime',
-            'parameters',
-            'terminal',
-        ], this);
-    }
 }
 
