@@ -28,8 +28,9 @@ export class ModelService extends HTTPService {
         router.post('/upload', images.single('file'), HTTPLogUtils.addBeginLogger(this.handleUpload, 'Model:upload'));
         router.post('/execute', inputs.single('input'), HTTPLogUtils.addBeginLogger(this.handleExecute, 'Model:execute'));
         router.get('/list', HTTPLogUtils.addBeginLogger(this.handleList, 'Model:list'));
-        router.get('/new-list', HTTPLogUtils.addBeginLogger(this.handleNewList, 'Model:new-list'));
+        router.get('/legacy-list', HTTPLogUtils.addBeginLogger(this.handleLegacyList, 'Model:legacy-list'));
         router.get('/info', HTTPLogUtils.addBeginLogger(this.handleInfo, 'Model:info'));
+        router.get('/legacy-info', HTTPLogUtils.addBeginLogger(this.handleLegacyInfo, 'Model:legacy-info'));
         router.put('/update', HTTPLogUtils.addBeginLogger(this.handleUpdate, 'Model:update'));
         app.use('/model', router);
     }
@@ -101,7 +102,7 @@ export class ModelService extends HTTPService {
         return res.status(200).send({msg: 'ok'});
     }
 
-    async handleList(req: Request, res: Response, next: Function) {
+    async handleLegacyList(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const models = await this.modelController.getAll();
         const responseData = models.map((model) => [
@@ -119,14 +120,26 @@ export class ModelService extends HTTPService {
         return res.status(200).send(responseData);
     }
 
-    async handleNewList(req: Request, res: Response, next: Function) {
+    async handleList(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const responseData = (await this.modelController.getAll()).map(m => m.toData());
         return res.status(200).send(responseData);
     }
 
-    // TODO: newList로 마이그레이션
     async handleInfo(req: Request, res: Response, next: Function) {
+        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        const inputUniqueName = String(req.query?.uniqueName);
+        if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
+        try {
+            const modelResult = await this.modelController.findModelByUniqueName(inputUniqueName);
+            if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
+            return res.status(200).send(modelResult.toData());
+        } catch (e) {
+            return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
+        }
+    }
+
+    async handleLegacyInfo(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const inputUniqueName = String(req.query?.uniqueName);
         if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
