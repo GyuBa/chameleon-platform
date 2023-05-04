@@ -7,30 +7,28 @@ export enum HistoryStatus {
 }
 
 export enum WSMessageType {
-    Ready = 'Ready',
-    Path = 'Path',
-    TerminalResize = 'TerminalResize',
-    Terminal = 'Terminal',
-    UpdateModel = 'UpdateModel',
-    UpdateModels = 'UpdateModels',
-    UpdateHistory = 'UpdateHistory',
-    UpdateHistories = 'UpdateHistories'
-
+    READY = 'Ready',
+    PATH = 'Path',
+    TERMINAL_RESIZE = 'TerminalResize',
+    TERMINAL = 'Terminal',
+    UPDATE_MODEL = 'UpdateModel',
+    UPDATE_MODELS = 'UpdateModels',
+    UPDATE_HISTORY = 'UpdateHistory',
+    UPDATE_HISTORIES = 'UpdateHistories'
 }
 
 export enum SocketMessageType {
-    Hello = 'Hello',
-    Launch = 'Launch',
-    FileWait = 'FileWait',
-    FileReceiveEnd = 'FileReceiveEnd',
-    Terminal = 'Terminal',
-    TerminalResize = 'TerminalResize',
-    ProcessEnd = 'ProcessEnd',
-    File = 'File',
-    RequestFile = 'RequestFile',
-    WaitReceive = 'WaitReceive',
-    LaunchModel = 'LaunchModel'
-
+    HELLO = 'Hello',
+    LAUNCH = 'Launch',
+    FILE_WAIT = 'FileWait',
+    FILE_RECEIVE_END = 'FileReceiveEnd',
+    TERMINAL = 'Terminal',
+    TERMINAL_RESIZE = 'TerminalResize',
+    PROCESS_END = 'ProcessEnd',
+    FILE = 'File',
+    REQUEST_FILE = 'RequestFile',
+    WAIT_RECEIVE = 'WaitReceive',
+    LAUNCH_MODEL = 'LaunchModel'
 }
 
 export enum SocketReceiveMode {
