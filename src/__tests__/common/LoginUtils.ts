@@ -1,9 +1,9 @@
-import {UserController} from "../../controller/UserController";
-import PlatformServer from "../../server/core/PlatformServer";
-import {TestingManager} from "./TestingManager";
+import {UserController} from '../../controller/UserController';
+import PlatformServer from '../../server/core/PlatformServer';
+import {TestingManager} from './TestingManager';
 
 const testAccount = {
-    'email': `test@test.com`,
+    'email': 'test@test.com',
     'password': 'test',
     'username': 'test'
 };
@@ -17,7 +17,7 @@ export class LoginUtils {
         }
         await TestingManager.axios.post('/auth/sign-in', testAccount).then(r => ({
             data: r.data,
-            cookie: r.headers["set-cookie"][0]
+            cookie: r.headers['set-cookie'][0]
         }));
 
         /* try {
