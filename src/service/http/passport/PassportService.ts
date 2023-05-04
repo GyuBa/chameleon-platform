@@ -61,11 +61,7 @@ export class PassportService extends HTTPService {
             if (!result) {
                 return done(null, false, {reason: {msg: 'unable_credential_errors'}}); // 비밀번호 틀렸을 때
             }
-            return done(null, {
-                id: user.id,
-                email: user.email,
-                username: user.username
-            });
+            return done(null, user);
         } catch (e) {
             // console.error(e);
             return done(e);
