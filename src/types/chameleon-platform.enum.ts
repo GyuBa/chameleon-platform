@@ -37,7 +37,3 @@ export enum SocketReceiveMode {
     JSON,
     FILE
 }
-
-export interface SupportToData {
-    toData(): any;
-}
