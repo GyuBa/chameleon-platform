@@ -13,7 +13,7 @@ export class AuthService extends HTTPService {
         const router = express.Router();
         router.post('/sign-in', HTTPLogUtils.addBeginLogger(this.handleSignIn, 'Auth:sign-in'));
         router.post('/sign-up', HTTPLogUtils.addBeginLogger(this.handleSignUp, 'Auth:sign-up'));
-        router.get('/info', HTTPLogUtils.addBeginLogger(this.handleInfo, 'Auth:info'));
+        router.get('/legacy-info', HTTPLogUtils.addBeginLogger(this.handleLegacyInfo, 'Auth:info'));
         router.post('/modify-password', HTTPLogUtils.addBeginLogger(this.handleModifyPassword, 'Auth:modify-password'));
         router.delete('/sign-out', HTTPLogUtils.addBeginLogger(this.handleSignOut, 'Auth:sign-out'));
         app.use('/auth', router);
@@ -51,10 +51,9 @@ export class AuthService extends HTTPService {
         res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 
-    async handleInfo(req: Request, res: Response, next: Function) {
+    async handleLegacyInfo(req: Request, res: Response, next: Function) {
         if (req.isAuthenticated()) {
-            console.log(req.user);
-            res.status(200).send(req.user);
+            res.status(200).send((req.user as User).toData());
         } else {
             res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         }
