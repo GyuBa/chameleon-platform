@@ -14,7 +14,7 @@ export class RegionService extends HTTPService {
 
     async handleList(req: Request, res: Response, next: Function) {
         try {
-            const result = (await this.regionController.getAll()).map(({id, name}) => ({id, name}));
+            const result = (await this.regionController.getAll()).map(r => r.toData());
             return res.status(200).send(result);
         } catch (e) {
             return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
