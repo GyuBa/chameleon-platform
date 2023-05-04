@@ -10,7 +10,7 @@ export default class DefaultWSManager extends WSManager {
     }
 
     ready(sockets: DefaultWSocket[] = this.getAllSockets()) {
-        this.json({msg: WSMessageType.Ready}, sockets);
+        this.json({msg: WSMessageType.READY}, sockets);
     }
 
     getAllSockets() {
@@ -34,10 +34,10 @@ export default class DefaultWSManager extends WSManager {
     }
 
     sendUpdateHistory(history: History, sockets: DefaultWSocket[] = this.getAllSockets()) {
-        this.json({msg: WSMessageType.UpdateHistory, history: history.toData()}, sockets);
+        this.json({msg: WSMessageType.UPDATE_HISTORY, history: history.toData()}, sockets);
     }
 
     sendTerminal(data: string, sockets: DefaultWSocket[] = this.getAllSockets()) {
-        this.json({msg: WSMessageType.Terminal, data}, sockets);
+        this.json({msg: WSMessageType.TERMINAL, data}, sockets);
     }
 }
