@@ -8,7 +8,7 @@ import {History} from '../../../entities/History';
 
 export default class DefaultSocketManager extends SocketManager {
     sendHello(sockets: DefaultSocket[] = this.getAllSockets()) {
-        this.json({msg: SocketMessageType.Hello}, sockets);
+        this.json({msg: SocketMessageType.HELLO}, sockets);
     }
 
     getAllSockets() {
@@ -24,37 +24,37 @@ export default class DefaultSocketManager extends SocketManager {
     }
 
     sendLaunchModel(scriptPath: string, options: any, sockets: DefaultSocket[] = this.getAllSockets()) {
-        this.json({msg: SocketMessageType.LaunchModel, scriptPath, options}, sockets);
+        this.json({msg: SocketMessageType.LAUNCH_MODEL, scriptPath, options}, sockets);
     }
 
     async sendFile(socket: DefaultSocket, localPath: string, filePath: string) {
         const fileSize = fs.statSync(localPath).size;
-        this.json({msg: SocketMessageType.File, filePath, fileSize}, [socket]);
+        this.json({msg: SocketMessageType.FILE, filePath, fileSize}, [socket]);
         socket.data.readStream = fs.createReadStream(localPath);
         await new Promise(resolve => socket.data.fileSendResolver = resolve);
     }
 
     async sendTextAsFile(socket: DefaultSocket, text: string, filePath: string) {
         const fileSize = Buffer.byteLength(text, 'utf8');
-        this.json({msg: SocketMessageType.File, filePath, fileSize}, [socket]);
+        this.json({msg: SocketMessageType.FILE, filePath, fileSize}, [socket]);
         socket.data.readStream = stream.Readable.from([text]);
         await new Promise(resolve => socket.data.fileSendResolver = resolve);
     }
 
     async getFile(socket: DefaultSocket, localPath: string, remotePath: string) {
         socket.data.writeStream = fs.createWriteStream(localPath);
-        this.json({msg: SocketMessageType.RequestFile, filePath: remotePath}, [socket]);
+        this.json({msg: SocketMessageType.REQUEST_FILE, filePath: remotePath}, [socket]);
         await new Promise(resolve => socket.data.fileReceiveResolver = resolve);
     }
 
     async getFileAsText(socket: DefaultSocket, remotePath: string) {
         socket.data.writeStream = new streams.WritableStream();
-        this.json({msg: SocketMessageType.RequestFile, filePath: remotePath}, [socket]);
+        this.json({msg: SocketMessageType.REQUEST_FILE, filePath: remotePath}, [socket]);
         await new Promise(resolve => socket.data.fileReceiveResolver = resolve);
         return socket.data.writeStream.toString();
     }
 
     sendTerminalResize(resizeOptions: TerminalResizeOption, sockets: DefaultSocket[] = this.getAllSockets()) {
-        this.json({msg: SocketMessageType.TerminalResize, ...resizeOptions}, sockets);
+        this.json({msg: SocketMessageType.TERMINAL_RESIZE, ...resizeOptions}, sockets);
     }
 }
