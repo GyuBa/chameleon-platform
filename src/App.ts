@@ -13,6 +13,7 @@ import DefaultWSHandler from './server/impl/handler/DefaultWSHandler';
 import DefaultSocketHandler from './server/impl/handler/DefaultSocketHandler';
 import {ExpressService} from './service/http/ExpressService';
 import {RegionService} from "./service/http/RegionService";
+import {UserService} from "./service/http/UserService";
 
 !async function () {
     const httpServer: HTTPServer = new HTTPServer({
@@ -53,6 +54,7 @@ import {RegionService} from "./service/http/RegionService";
     httpServer.addHandler(new PointService());
     httpServer.addHandler(new ModelService());
     httpServer.addHandler(new RegionService());
+    httpServer.addHandler(new UserService());
 
     await PlatformServer.start();
 }();
