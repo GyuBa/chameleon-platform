@@ -12,19 +12,19 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
     constructor() {
         super();
 
-        this.handles[WSMessageType.Path] = async (server: DefaultWSServer, socket: DefaultWSocket, data: any) => {
-            console.log(`[WebSocket, ${socket.req.remoteAddress}:${socket.req.remotePort}] Path - ${data.path}`);
+        this.handles[WSMessageType.PATH] = async (server: DefaultWSServer, socket: DefaultWSocket, data: any) => {
+            console.log(`[WebSocket, ${socket.req.ip}] Path - ${data.path}`);
             socket.data.path = data.path;
         };
 
-        this.handles[WSMessageType.TerminalResize] = async (server: DefaultWSServer, socket: DefaultWSocket, data: any) => {
+        this.handles[WSMessageType.TERMINAL_RESIZE] = async (server: DefaultWSServer, socket: DefaultWSocket, data: any) => {
             if (!socket.req.isAuthenticated() || data.historyId) {
                 return;
             }
             const history = await this.historyController.findById(data.historyId);
             const historySockets = PlatformServer.socketServer.manager.getHistorySockets(history);
             const resizeOptions = {rows: data.rows > 0 ? data.rows : 1, cols: data.cols > 0 ? data.cols : 1};
-            console.log(`[WebSocket, ${socket.req.remoteAddress}:${socket.req.remotePort}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
+            console.log(`[WebSocket, ${socket.req.ip}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
             PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, historySockets);
         };
     }
@@ -35,7 +35,11 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
 
     onMessage(server: DefaultWSServer, socket: DefaultWSocket, rawData: RawData, isBinary: boolean) {
         const message = JSON.parse(rawData.toString());
-        this.handles[message.msg](server, socket, message);
+        try {
+            this.handles[message.msg](server, socket, message);
+        } catch (e) {
+            console.error(`[WebSocket, ${socket.req.ip}] onMessage - Message: ${JSON.stringify(message)}`);
+        }
     }
 
     onClose(server: DefaultWSServer, socket: DefaultWSocket, code: number, reason: Buffer) {
