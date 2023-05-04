@@ -21,22 +21,22 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             const config = model.config;
             const paths = config.paths;
 
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) Launch - Model: ${model.name}, Executor: ${socket.data.history.executor.username}, Image: ${model.image.getRepositoryTagString()}, Container: ${history.containerId}`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) Launch - Model: ${model.name}, Executor: ${socket.data.history.executor.username}, Image: ${model.image.getRepositoryTagString()}, Container: ${history.containerId}`);
 
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) SendFile (Input) - InputPath: ${history.inputPath}, FileSize: ${fs.statSync(history.inputPath).size}`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) SendFile (Input) - InputPath: ${history.inputPath}, FileSize: ${fs.statSync(history.inputPath).size}`);
             await server.manager.sendFile(socket, history.inputPath, config.paths.input);
             const inputInfo = JSON.stringify(history.inputInfo);
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) SendTextAsFile (InputInfo) - Length: ${inputInfo.length}`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) SendTextAsFile (InputInfo) - Length: ${inputInfo.length}`);
             await server.manager.sendTextAsFile(socket, inputInfo, paths.inputInfo);
             const parameters = JSON.stringify(history.parameters);
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) SendTextAsFile (Parameters) - Length: ${parameters.length}`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) SendTextAsFile (Parameters) - Length: ${parameters.length}`);
             await server.manager.sendTextAsFile(socket, parameters, paths.parameters);
 
             socket.data.terminal = new Terminal({allowProposedApi: true});
             socket.data.terminalSerializer = new SerializeAddon();
             socket.data.terminal.loadAddon(socket.data.terminalSerializer);
 
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) SendLaunchModel`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) SendLaunchModel`);
             server.manager.sendLaunchModel(paths.script, {cols: 181, row: 14}, [socket]);
         };
 
@@ -86,7 +86,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                 setTimeout(async () => {
                     history.terminal = socket.data.terminalSerializer.serialize();
                     await this.historyController.save(history);
-                    console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) Terminal (Saved) - Length: ${history.terminal.length}`);
+                    console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) Terminal (Saved) - Length: ${history.terminal.length}`);
                     socket.data.terminalDatabaseLock = false;
                 }, 1000);
             }
@@ -95,7 +95,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
 
         this.handles[SocketMessageType.PROCESS_END] = async (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
             const history = socket.data.history;
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) ProcessEnd`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) ProcessEnd`);
 
             history.outputPath = `uploads/outputs/${crypto.randomBytes(16).toString('hex')}`;
             const model = history.model;
@@ -103,11 +103,11 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             const {paths} = history.model.config;
             const inputInfo = history.inputInfo;
 
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) GetFile (Output) - ${history.outputPath}`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) GetFile (Output) - ${history.outputPath}`);
             await server.manager.getFile(socket, history.outputPath, paths.output);
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) GetFileAsText (OutputDescription)`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) GetFileAsText (OutputDescription)`);
             history.description = await server.manager.getFileAsText(socket, paths.outputDescription);
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) GetFileAsText (OutputInfo)`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) GetFileAsText (OutputInfo)`);
             const outputInfoRaw = await server.manager.getFileAsText(socket, paths.outputInfo);
 
             let outputInfo: any = {};
@@ -125,7 +125,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             const targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history, PlatformServer.wsServer.manager.getAuthenticatedSockets());
             PlatformServer.wsServer.manager.sendUpdateHistory(history, targetSockets);
 
-            console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) ClearContainer - Container: ${history.containerId}`);
+            console.log(`[Socket, ${socket.remoteAddress}] (History: ${history.id}) ClearContainer - Container: ${history.containerId}`);
             const docker = new Dockerode(image.region);
             const container = await docker.getContainer(history.containerId);
             await container.stop();
@@ -169,7 +169,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                 try {
                     this.handles[message.msg](server, socket, message);
                 } catch (e) {
-                    console.error(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] onData - Message: ${JSON.stringify(message)}`);
+                    console.error(`[Socket, ${socket.remoteAddress}] onData - Message: ${JSON.stringify(message)}`);
                 }
             }
         } else {
