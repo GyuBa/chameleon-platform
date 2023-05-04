@@ -15,7 +15,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
     constructor() {
         super();
 
-        this.handles[SocketMessageType.Launch] = async (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.LAUNCH] = async (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
             const history = socket.data.history = await this.historyController.findById(message.historyId);
             const model = history.model;
             const config = model.config;
@@ -40,30 +40,30 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             server.manager.sendLaunchModel(paths.script, {cols: 181, row: 14}, [socket]);
         };
 
-        this.handles[SocketMessageType.FileWait] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.FILE_WAIT] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
             socket.data.readStream.pipe(socket, {end: false});
             socket.data.readStream.on('end', () => {
                 socket.data.readStream?.close?.();
             });
         };
 
-        this.handles[SocketMessageType.FileReceiveEnd] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.FILE_RECEIVE_END] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
             socket.data.fileSendResolver();
         };
 
-        this.handles[SocketMessageType.File] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.FILE] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
             socket.data.fileSize = message.fileSize;
             if (socket.data.fileSize === 0) {
-                server.manager.json({msg: SocketMessageType.FileReceiveEnd}, [socket]);
+                server.manager.json({msg: SocketMessageType.FILE_RECEIVE_END}, [socket]);
                 socket.data.fileReceiveResolver();
                 return;
             }
             socket.data.receiveMode = SocketReceiveMode.FILE;
             socket.data.receivedBytes = 0;
-            server.manager.json({msg: SocketMessageType.WaitReceive}, [socket]);
+            server.manager.json({msg: SocketMessageType.WAIT_RECEIVE}, [socket]);
         };
 
-        this.handles[SocketMessageType.Terminal] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.TERMINAL] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
             socket.data.terminalBuffer += message.data;
             const history = socket.data.history;
 
@@ -93,8 +93,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
         };
 
 
-
-        this.handles[SocketMessageType.ProcessEnd] = async (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.PROCESS_END] = async (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
             const history = socket.data.history;
             console.log(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] (History: ${history.id}) ProcessEnd`);
 
@@ -167,7 +166,11 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                 }
             }
             if (message) {
-                this.handles[message.msg](server, socket, message);
+                try {
+                    this.handles[message.msg](server, socket, message);
+                } catch (e) {
+                    console.error(`[Socket, ${socket.remoteAddress}:${socket.remotePort}] onData - Message: ${JSON.stringify(message)}`);
+                }
             }
         } else {
             socket.data.receivedBytes += data.length;
@@ -181,13 +184,13 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     socket.data.writeStream?.destroy?.();
                     socket.data.writeStream.write(fileData);
                     socket.data.receiveMode = SocketReceiveMode.JSON;
-                    server.manager.json({msg: SocketMessageType.FileReceiveEnd}, [socket]);
+                    server.manager.json({msg: SocketMessageType.FILE_RECEIVE_END}, [socket]);
                     socket.data.fileReceiveResolver();
                 } else {
                     socket.data.writeStream.write(fileData, function () {
                         socket.data.writeStream?.destroy?.();
                         socket.data.receiveMode = SocketReceiveMode.JSON;
-                        server.manager.json({msg: SocketMessageType.FileReceiveEnd}, [socket]);
+                        server.manager.json({msg: SocketMessageType.FILE_RECEIVE_END}, [socket]);
                         socket.data.fileReceiveResolver();
                     });
                 }
