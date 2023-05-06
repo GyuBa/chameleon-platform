@@ -3,7 +3,7 @@ import {UserController} from '../controller/UserController';
 import {TestingManager} from './common/TestingManager';
 
 const testAccount = {
-    'email': `test${new Date().getTime()}@test.com`,
+    'email': `test@test.com`,
     'password': 'test',
     'username': 'test'
 };
@@ -11,13 +11,13 @@ const testAccount = {
 describe('Login', () => {
     beforeAll(async () => await TestingManager.init());
 
-    afterAll(async () => {
+/*    afterAll(async () => {
         const userController = new UserController(PlatformServer.source);
         const testUser = await userController.findUserByEmail(testAccount.email);
         if (testUser) {
             await userController.delete(testUser);
         }
-    });
+    });*/
 
     test('sign-up', async () => {
         const result = await TestingManager.axios.post('/auth/sign-up', testAccount).then(r => r.data);
