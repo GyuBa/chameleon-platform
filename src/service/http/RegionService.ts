@@ -8,8 +8,8 @@ import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 export class RegionService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.get('/list', HTTPLogUtils.addBeginLogger(this.handleList, 'Region:list'));
-        app.use('/region', router);
+        router.get('/', HTTPLogUtils.addBeginLogger(this.handleList, '/regions/list'));
+        app.use('/regions', router);
     }
 
     async handleList(req: Request, res: Response, next: Function) {

@@ -9,8 +9,8 @@ import {RESPONSE_MESSAGE} from "../../constant/Constants";
 export class UserService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.get('/info', HTTPLogUtils.addBeginLogger(this.handleInfo, 'User:info'));
-        app.use('/user', router);
+        router.get('/my', HTTPLogUtils.addBeginLogger(this.handleInfo, 'User:info'));
+        app.use('/users', router);
     }
 
     async handleInfo(req: Request, res: Response, next: Function) {

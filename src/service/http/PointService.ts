@@ -9,16 +9,16 @@ import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 export class PointService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.get('/my', HTTPLogUtils.addBeginLogger(this.handleMy, 'Point:my'));
-        router.post('/update', HTTPLogUtils.addBeginLogger(this.handleMy, 'Point:update'));
-        app.use('/point', router);
+        router.get('/my', HTTPLogUtils.addBeginLogger(this.handleMy, '/points/my'));
+        router.post('/update', HTTPLogUtils.addBeginLogger(this.handleMy, '/points/update'));
+        app.use('/points', router);
     }
 
     async handleMy(req: Request, res: Response, next: Function) {
         const {id} = req.query;
         if (!id) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
         console.log(id);
-        const point = await this.walletController.findWalletByUserId(Number(id));
+        const point = await this.walletController.findByUserId(Number(id));
         return res.status(200).send({
             'point': point.point,
         });
@@ -28,7 +28,7 @@ export class PointService extends HTTPService {
         const {id} = req.query;
         if (!req.isAuthenticated()) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
         if (!id) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
-        const wallet = await this.walletController.findWalletByUserId(Number(id));
+        const wallet = await this.walletController.findByUserId(Number(id));
         return res.status(200).send({
             wallet
         });
@@ -39,8 +39,8 @@ export class PointService extends HTTPService {
         const {amount} = req.body;
         if (!req.isAuthenticated()) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
         if (!amount) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
-        if (!(await this.walletController.findWalletByUserId(Number(req.user['id'])))) return res.status(501).send(RESPONSE_MESSAGE.NOT_FOUND);
-        if ((await this.walletController.findWalletByUserId(Number(req.user['id'])))['point'] + Number(amount) < 0) return res.status(501).send(RESPONSE_MESSAGE.WRONG_REQ);
+        if (!(await this.walletController.findByUserId(Number(req.user['id'])))) return res.status(501).send(RESPONSE_MESSAGE.NOT_FOUND);
+        if ((await this.walletController.findByUserId(Number(req.user['id'])))['point'] + Number(amount) < 0) return res.status(501).send(RESPONSE_MESSAGE.WRONG_REQ);
         await this.walletController.updateAmount(req.user['id'], amount);
         return res.status(200).send(RESPONSE_MESSAGE);
     }

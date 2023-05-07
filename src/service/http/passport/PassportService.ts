@@ -50,7 +50,7 @@ export class PassportService extends HTTPService {
 
     async verifyHandler(email, password, done) {
         try {
-            const user = await this.userController.findUserByEmail(email);
+            const user = await this.userController.findByEmail(email);
             if (!(email && password)) {
                 return done(null, false, {reason: {msg: 'non_field_errors'}});
             }

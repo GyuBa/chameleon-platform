@@ -11,12 +11,11 @@ import {HTTPLogUtils} from "../../utils/HTTPLogUtils";
 export class AuthService extends HTTPService {
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.post('/sign-in', HTTPLogUtils.addBeginLogger(this.handleSignIn, 'Auth:sign-in'));
-        router.post('/sign-up', HTTPLogUtils.addBeginLogger(this.handleSignUp, 'Auth:sign-up'));
-        router.get('/legacy-info', HTTPLogUtils.addBeginLogger(this.handleLegacyInfo, 'Auth:info'));
-        router.post('/modify-password', HTTPLogUtils.addBeginLogger(this.handleModifyPassword, 'Auth:modify-password'));
-        router.delete('/sign-out', HTTPLogUtils.addBeginLogger(this.handleSignOut, 'Auth:sign-out'));
-        app.use('/auth', router);
+        router.post('/sign-in', HTTPLogUtils.addBeginLogger(this.handleSignIn, '/auths/sign-in'));
+        router.post('/sign-up', HTTPLogUtils.addBeginLogger(this.handleSignUp, '/auths/sign-up'));
+        router.post('/modify-password', HTTPLogUtils.addBeginLogger(this.handleModifyPassword, '/auths/modify-password'));
+        router.delete('/sign-out', HTTPLogUtils.addBeginLogger(this.handleSignOut, '/auths/sign-out'));
+        app.use('/auths', router);
     }
 
     /**
@@ -37,7 +36,7 @@ export class AuthService extends HTTPService {
             return;
         }
 
-        if (await this.userController.findUserByEmail(req.body.email)) {
+        if (await this.userController.findByEmail(req.body.email)) {
             res.status(401).send(RESPONSE_MESSAGE.DUPLICATED_EMAIL);
             return;
         }
