@@ -25,14 +25,13 @@ export class ModelService extends HTTPService {
 
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.post('/upload', images.single('file'), HTTPLogUtils.addBeginLogger(this.handleUpload, 'Model:upload'));
-        router.post('/execute', inputs.single('input'), HTTPLogUtils.addBeginLogger(this.handleExecute, 'Model:execute'));
-        router.get('/list', HTTPLogUtils.addBeginLogger(this.handleList, 'Model:list'));
-        router.get('/legacy-list', HTTPLogUtils.addBeginLogger(this.handleLegacyList, 'Model:legacy-list'));
-        router.get('/info', HTTPLogUtils.addBeginLogger(this.handleInfo, 'Model:info'));
-        router.get('/legacy-info', HTTPLogUtils.addBeginLogger(this.handleLegacyInfo, 'Model:legacy-info'));
-        router.put('/update', HTTPLogUtils.addBeginLogger(this.handleUpdate, 'Model:update'));
-        app.use('/model', router);
+        router.post('/upload', images.single('file'), HTTPLogUtils.addBeginLogger(this.handleUpload, '/models/upload'));
+        router.post('/execute', inputs.single('input'), HTTPLogUtils.addBeginLogger(this.handleExecute, '/models/execute'));
+        router.put('/update', HTTPLogUtils.addBeginLogger(this.handleUpdate, '/models/update'));
+        router.get('/name/:name', HTTPLogUtils.addBeginLogger(this.handleGetModelByName, '/models/name/:name'));
+        // router.get('/:id', HTTPLogUtils.addBeginLogger(this.handleGetModelByName, '/models/:id'));
+        router.get('/', HTTPLogUtils.addBeginLogger(this.handleModels, '/models'));
+        app.use('/models', router);
     }
 
     async handleExecute(req: Request, res: Response, next: Function) {
@@ -120,18 +119,19 @@ export class ModelService extends HTTPService {
         return res.status(200).send(responseData);
     }
 
-    async handleList(req: Request, res: Response, next: Function) {
+    async handleModels(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const responseData = (await this.modelController.getAll()).map(m => m.toData());
+        const ownOnly = req.query.ownOnly === 'true';
+        const responseData = (ownOnly ? await this.modelController.findAllByUserId((req.user as User).id) : await this.modelController.getAll()).map(m => m.toData());
         return res.status(200).send(responseData);
     }
 
-    async handleInfo(req: Request, res: Response, next: Function) {
+    async handleGetModelByName(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const inputUniqueName = String(req.query?.uniqueName);
-        if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
+        const idOrUniqueName = req.params?.name;
+        if (!idOrUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
         try {
-            const modelResult = await this.modelController.findModelByUniqueName(inputUniqueName);
+            const modelResult = await this.modelController.findByUniqueName(idOrUniqueName);
             if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
             return res.status(200).send(modelResult.toData());
         } catch (e) {
@@ -144,7 +144,7 @@ export class ModelService extends HTTPService {
         const inputUniqueName = String(req.query?.uniqueName);
         if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
         try {
-            const modelResult = await this.modelController.findModelByUniqueName(inputUniqueName);
+            const modelResult = await this.modelController.findByUniqueName(inputUniqueName);
             if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
             const response = [
                 'id',
@@ -209,7 +209,7 @@ export class ModelService extends HTTPService {
     async toPermalink(repository: string, tag: string) {
         const tagName = tag.toLowerCase().replace(/ /g, '-');
         const repositoryName = repository.toLowerCase();
-        const result = await this.imageController.findAllImageByRepositoryAndTagLike(repositoryName, tagName);
+        const result = await this.imageController.findAllByRepositoryAndTagLike(repositoryName, tagName);
 
         if (result.length == 0) {
             return tagName;
@@ -221,7 +221,7 @@ export class ModelService extends HTTPService {
 
     // TODO: 함수 2개 요약 필요 getLastIndex, toPermalink
     async getLastIndex(repository: string, tag: string) {
-        const imageList = await this.imageController.findAllImageByRepositoryAndTagLike(repository, tag);
+        const imageList = await this.imageController.findAllByRepositoryAndTagLike(repository, tag);
         const lastImage = imageList[imageList.length - 1];
         if (tag.length == lastImage.tag.length) return 0;
         else {
@@ -282,7 +282,7 @@ export class ModelService extends HTTPService {
         if (!(regionName && modelName && description && inputType && outputType && req.file && parameters)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
         if (!(req.isAuthenticated())) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
 
-        const region: Region = await this.regionController.findRegionByName(regionName);
+        const region: Region = await this.regionController.findByName(regionName);
         if (!region) return res.status(501).send(RESPONSE_MESSAGE.REG_NOT_FOUND);
 
         const file = req.file;
