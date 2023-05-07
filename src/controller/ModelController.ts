@@ -30,7 +30,7 @@ export class ModelController extends BaseController<Model> {
     }
 
     // image update 시 update 가 아니라 기존 image 재 등록
-    async findModelByImage(image: Image): Promise<Model> {
+    async findByImage(image: Image): Promise<Model> {
         try {
             return await await ModelController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
@@ -42,12 +42,24 @@ export class ModelController extends BaseController<Model> {
         }
     }
 
-    async findModelByUniqueName(uniqueName: string): Promise<Model> {
+    async findByUniqueName(uniqueName: string): Promise<Model> {
         try {
             return await await ModelController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
                 .where('Model.uniqueName=:uniqueName', {uniqueName})
                 .getOne();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
+    async findAllByUserId(userId: number): Promise<Model[]> {
+        try {
+            return await await ModelController.selectWithJoin(this.repository.createQueryBuilder())
+                .select()
+                .where('Register.id=:userId', {userId})
+                .getMany();
         } catch (e) {
             console.error(e);
             throw e;

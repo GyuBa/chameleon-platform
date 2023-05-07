@@ -7,7 +7,7 @@ export class RegionController extends BaseController<Region> {
         super(source, Region);
     }
 
-    async findRegionByHost(host: string): Promise<Region> {
+    async findByHost(host: string): Promise<Region> {
         try {
             return await this.repository
                 .createQueryBuilder()
@@ -20,7 +20,7 @@ export class RegionController extends BaseController<Region> {
         }
     }
 
-    async findRegionByPort(port: number): Promise<Region> {
+    async findByPort(port: number): Promise<Region> {
         try {
             return await this.repository
                 .createQueryBuilder('region')
@@ -33,7 +33,7 @@ export class RegionController extends BaseController<Region> {
         }
     }
 
-    async findRegionByName(name: string): Promise<Region> {
+    async findByName(name: string): Promise<Region> {
         try {
             return await this.repository
                 .createQueryBuilder()

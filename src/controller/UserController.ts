@@ -11,7 +11,7 @@ export class UserController extends BaseController<User> {
      * Search User data on user table
      * @param {string} userEmail - user Email to be searched
      */
-    async findUserByEmail(email: string): Promise<User> {
+    async findByEmail(email: string): Promise<User> {
         try {
             return await this.repository
                 .createQueryBuilder()
