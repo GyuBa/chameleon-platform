@@ -11,11 +11,11 @@ const testAccount = {
 export class LoginUtils {
     static async login() {
         const userController = new UserController(PlatformServer.source);
-        const testUser = await userController.findUserByEmail(testAccount.email);
+        const testUser = await userController.findByEmail(testAccount.email);
         if (!testUser) {
-            await TestingManager.axios.post('/auth/sign-up', testAccount).then(r => r.data);
+            await TestingManager.axios.post('/auths/sign-up', testAccount).then(r => r.data);
         }
-        await TestingManager.axios.post('/auth/sign-in', testAccount).then(r => ({
+        await TestingManager.axios.post('/auths/sign-in', testAccount).then(r => ({
             data: r.data,
             cookie: r.headers['set-cookie'][0]
         }));
