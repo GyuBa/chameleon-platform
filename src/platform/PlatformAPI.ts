@@ -33,7 +33,7 @@ export class PlatformAPI {
 
     public static toFormData(data: any): FormData {
         const formData = new FormData();
-        Object.entries(data).forEach(([name, value]: [string, string | Blob]) => formData.append(name, value));
+        Object.entries(data).forEach(([name, value]: [string, any]) => formData.append(name, value));
         return formData;
     }
 
