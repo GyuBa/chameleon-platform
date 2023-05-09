@@ -1,8 +1,8 @@
 import WSManager from '../../manager/WSManager';
 import {DefaultWSocket} from '../../../types/chameleon-platform';
-import {WSMessageType} from "../../../types/chameleon-platform.enum";
-import {Model} from "../../../entities/Model";
-import {History} from "../../../entities/History";
+import {Model} from '../../../entities/Model';
+import {History} from '../../../entities/History';
+import {WSMessageType} from '../../../types/chameleon-platform.common';
 
 export default class DefaultWSManager extends WSManager {
     json(data: any, sockets: DefaultWSocket[] = this.getAllSockets()) {

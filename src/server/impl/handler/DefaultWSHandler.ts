@@ -1,8 +1,8 @@
 import {RawData} from 'ws';
 import {DefaultWSocket, DefaultWSServer, WebSocketHandle, WebSocketHandler} from '../../../types/chameleon-platform';
 import {PlatformService} from '../../../service/interfaces/PlatformService';
-import {WSMessageType} from '../../../types/chameleon-platform.enum';
 import PlatformServer from '../../core/PlatformServer';
+import {WSMessageType} from "../../../types/chameleon-platform.common";
 
 
 export default class DefaultWSHandler extends PlatformService implements WebSocketHandler<DefaultWSServer, DefaultWSocket> {

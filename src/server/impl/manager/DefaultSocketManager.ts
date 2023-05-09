@@ -1,10 +1,11 @@
 import SocketManager from '../../manager/SocketManager';
-import {DefaultSocket, TerminalResizeOption} from '../../../types/chameleon-platform';
+import {TerminalResizeOption} from '../../../types/chameleon-platform.common';
 import * as fs from 'fs';
 import * as stream from 'stream';
-import {SocketMessageType} from '../../../types/chameleon-platform.enum';
 import * as streams from 'memory-streams';
 import {History} from '../../../entities/History';
+import {SocketMessageType} from "../../../types/chameleon-platform.common";
+import {DefaultSocket} from "../../../types/chameleon-platform";
 
 export default class DefaultSocketManager extends SocketManager {
     sendHello(sockets: DefaultSocket[] = this.getAllSockets()) {

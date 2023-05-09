@@ -1,13 +1,13 @@
 import {DefaultSocket, DefaultSocketServer, SocketHandle, SocketHandler} from '../../../types/chameleon-platform';
 import {PlatformService} from '../../../service/interfaces/PlatformService';
 import * as streams from 'memory-streams';
-import {HistoryStatus, SocketMessageType, SocketReceiveMode} from '../../../types/chameleon-platform.enum';
 import {Terminal} from 'xterm-headless';
 import {SerializeAddon} from 'xterm-addon-serialize';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as Dockerode from 'dockerode';
 import PlatformServer from '../../core/PlatformServer';
+import {HistoryStatus, SocketMessageType, SocketReceiveMode} from "../../../types/chameleon-platform.common";
 
 export default class DefaultSocketHandler extends PlatformService implements SocketHandler<DefaultSocketServer, DefaultSocket> {
     readonly handles: { [messageType: string]: SocketHandle } = {};
@@ -117,7 +117,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                 /* empty */
             }
             outputInfo.fileSize = fs.existsSync(history.outputPath) ? fs.statSync(history.outputPath).size : 0;
-            outputInfo.fileName = outputInfo.fileName ? outputInfo.fileName : `output_${inputInfo.originalName}}`;
+            outputInfo.fileName = outputInfo.fileName ? outputInfo.fileName : `output_${inputInfo.originalName}`;
             history.outputInfo = outputInfo;
             history.status = HistoryStatus.FINISHED;
             await this.historyController.save(history);
