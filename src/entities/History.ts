@@ -2,7 +2,7 @@ import {Column, Entity, JoinColumn, ManyToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Model} from './Model';
 import {User} from './User';
-import {HistoryStatus} from '../types/chameleon-platform.enum';
+import {HistoryStatus, ModelInputInfo, ModelOutputInfo} from '../types/chameleon-platform.common';
 
 @Entity()
 export class History extends Common{
@@ -13,12 +13,12 @@ export class History extends Common{
     @Column({nullable: true})
         inputPath: string;
     @Column({nullable: true, type: 'json'})
-        inputInfo: any;
+        inputInfo: ModelInputInfo;
 
     @Column({nullable: true})
         outputPath: string;
     @Column({nullable: true, type: 'json'})
-        outputInfo: any;
+        outputInfo: ModelOutputInfo;
     @Column({nullable: true, type: 'text'})
         description: string;
     @ManyToOne(
