@@ -14,6 +14,7 @@ import DefaultSocketHandler from './server/impl/handler/DefaultSocketHandler';
 import {ExpressService} from './service/http/ExpressService';
 import {RegionService} from "./service/http/RegionService";
 import {UserService} from "./service/http/UserService";
+import {HistoryService} from "./service/http/HistoryService";
 
 !async function () {
     const httpServer: HTTPServer = new HTTPServer({
@@ -55,6 +56,7 @@ import {UserService} from "./service/http/UserService";
     httpServer.addHandler(new ModelService());
     httpServer.addHandler(new RegionService());
     httpServer.addHandler(new UserService());
+    httpServer.addHandler(new HistoryService());
 
     await PlatformServer.start();
 }();
