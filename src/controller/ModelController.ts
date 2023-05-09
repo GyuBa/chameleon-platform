@@ -54,6 +54,19 @@ export class ModelController extends BaseController<Model> {
         }
     }
 
+    async findByUsernameAndUniqueName(username: string, uniqueName: string): Promise<Model> {
+        try {
+            return await await ModelController.selectWithJoin(this.repository.createQueryBuilder())
+                .select()
+                .where('Register=:username', {username})
+                .where('Model.uniqueName=:uniqueName', {uniqueName})
+                .getOne();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     async findAllByUserId(userId: number): Promise<Model[]> {
         try {
             return await await ModelController.selectWithJoin(this.repository.createQueryBuilder())
