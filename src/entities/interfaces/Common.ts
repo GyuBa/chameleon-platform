@@ -1,5 +1,5 @@
 import {CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm';
-import {EntityDataKeys} from '../../types/chameleon-platform.entitydata.keys';
+import {ENTITY_DATA_KEYS} from "../../types/chameleon-platform.common";
 
 @Entity()
 export class Common {
@@ -14,7 +14,7 @@ export class Common {
 
 
     get dataKeys() {
-        return EntityDataKeys[this.constructor.name];
+        return ENTITY_DATA_KEYS[this.constructor.name];
     }
 
     toData() {
