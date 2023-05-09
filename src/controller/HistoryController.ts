@@ -4,7 +4,7 @@ import {DataSource, SelectQueryBuilder} from 'typeorm';
 import {Model} from '../entities/Model';
 import {Image} from '../entities/Image';
 import {ModelController} from './ModelController';
-import {HistoryStatus} from '../types/chameleon-platform.enum';
+import {HistoryStatus} from '../types/chameleon-platform.common';
 
 export class HistoryController extends BaseController<History> {
     constructor(source: DataSource) {
@@ -30,12 +30,11 @@ export class HistoryController extends BaseController<History> {
         }
     }
 
-    async findAllByStatus(status: string): Promise<History[]> {
+    async findAllByExecutorId(executorId: number): Promise<History[]> {
         try {
-            return await this.repository
-                .createQueryBuilder()
+            return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
-                .where('status=:status', {status})
+                .where('Executor.id=:executorId', {executorId})
                 .getMany();
         } catch (e) {
             console.error(e);
@@ -47,7 +46,7 @@ export class HistoryController extends BaseController<History> {
         try {
             return await HistoryController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
-                .where('Image.id=:imageId', {imageId: image.id})
+                .where('Image.id=:id', image)
                 .andWhere('History.status=:status', {status})
                 .getMany();
         } catch (e) {

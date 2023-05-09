@@ -2,10 +2,10 @@ import {Column, Entity, JoinColumn, ManyToOne, OneToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {User} from './User';
 import {Image} from './Image';
-import {ModelConfig} from '../types/chameleon-platform';
+import {ModelConfig, ModelInputType, ModelOutputType, ModelParameters} from '../types/chameleon-platform.common';
 
 @Entity()
-export class Model extends Common{
+export class Model extends Common {
     @Column()
         uniqueName: string;
     @Column()
@@ -28,14 +28,14 @@ export class Model extends Common{
     @Column()
         cacheSize: number;
 
-    @Column()
+    @Column({enum: ModelInputType})
         inputType: string;
 
-    @Column()
+    @Column({enum: ModelOutputType})
         outputType: string;
 
     @Column({type: 'json'})
-        parameters: any;
+        parameters: ModelParameters;
 
     @Column({type: 'json'})
         config: ModelConfig;

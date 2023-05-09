@@ -1,6 +1,6 @@
 import {UserController} from '../../controller/UserController';
 import PlatformServer from '../../server/core/PlatformServer';
-import {TestingManager} from './TestingManager';
+import {PlatformAPI} from "../../platform/PlatformAPI";
 
 const testAccount = {
     'email': 'test@test.com',
@@ -13,18 +13,8 @@ export class LoginUtils {
         const userController = new UserController(PlatformServer.source);
         const testUser = await userController.findByEmail(testAccount.email);
         if (!testUser) {
-            await TestingManager.axios.post('/auths/sign-up', testAccount).then(r => r.data);
+            await PlatformAPI.signUp(testAccount.email, testAccount.password, testAccount.username);
         }
-        await TestingManager.axios.post('/auths/sign-in', testAccount).then(r => ({
-            data: r.data,
-            cookie: r.headers['set-cookie'][0]
-        }));
-
-        /* try {
-            const info = await TestingManager.axios.get('/auth/info').then(r => r.data);
-            console.log(info);
-        } catch (e) {
-            console.error(e.response.data);
-        } */
+        await PlatformAPI.signIn(testAccount.email, testAccount.password);
     }
 }

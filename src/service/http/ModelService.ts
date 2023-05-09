@@ -12,10 +12,10 @@ import {Server} from 'http';
 import {DockerUtils} from '../../utils/DockerUtils';
 import * as multer from 'multer';
 import {MulterUtils} from '../../utils/MulterUtils';
-import {HistoryStatus} from '../../types/chameleon-platform.enum';
 import PlatformServer from '../../server/core/PlatformServer';
 import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
+import {HistoryStatus} from '../../types/chameleon-platform.common';
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -28,9 +28,9 @@ export class ModelService extends HTTPService {
         router.post('/upload', images.single('file'), HTTPLogUtils.addBeginLogger(this.handleUpload, '/models/upload'));
         router.post('/execute', inputs.single('input'), HTTPLogUtils.addBeginLogger(this.handleExecute, '/models/execute'));
         router.put('/update', HTTPLogUtils.addBeginLogger(this.handleUpdate, '/models/update'));
-        router.get('/name/:name', HTTPLogUtils.addBeginLogger(this.handleGetModelByName, '/models/name/:name'));
-        // router.get('/:id', HTTPLogUtils.addBeginLogger(this.handleGetModelByName, '/models/:id'));
-        router.get('/', HTTPLogUtils.addBeginLogger(this.handleModels, '/models'));
+        router.get('/name/:nameId', HTTPLogUtils.addBeginLogger(this.handleGetModelByNameId, '/models/name/:nameId'));
+        router.get('/:id', HTTPLogUtils.addBeginLogger(this.handleGetModelById, '/models/:id'));
+        router.get('/', HTTPLogUtils.addBeginLogger(this.handleGetModels, '/models'));
         app.use('/models', router);
     }
 
@@ -101,37 +101,20 @@ export class ModelService extends HTTPService {
         return res.status(200).send({msg: 'ok'});
     }
 
-    async handleLegacyList(req: Request, res: Response, next: Function) {
-        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const models = await this.modelController.getAll();
-        const responseData = models.map((model) => [
-            'id',
-            'updatedTime',
-            'uniqueName',
-            'name',
-            'inputType',
-            'outputType'
-        ].reduce((obj, key) => ({...obj, [key]: model[key]}), {
-            username: model.register.username,
-            modelName: model.name,
-            regionName: model.image.region.name
-        }));
-        return res.status(200).send(responseData);
-    }
-
-    async handleModels(req: Request, res: Response, next: Function) {
+    async handleGetModels(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
         const ownOnly = req.query.ownOnly === 'true';
-        const responseData = (ownOnly ? await this.modelController.findAllByUserId((req.user as User).id) : await this.modelController.getAll()).map(m => m.toData());
+        const user = req.user as User;
+        const responseData = (ownOnly ? await this.modelController.findAllByUserId(user.id) : await this.modelController.getAll()).map(m => m.toData());
         return res.status(200).send(responseData);
     }
 
-    async handleGetModelByName(req: Request, res: Response, next: Function) {
+    async handleGetModelById(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const idOrUniqueName = req.params?.name;
-        if (!idOrUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
+        const id = req.params?.id;
+        if (!id || Number.isNaN(id)) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
         try {
-            const modelResult = await this.modelController.findByUniqueName(idOrUniqueName);
+            const modelResult = await this.modelController.findById(parseInt(id));
             if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
             return res.status(200).send(modelResult.toData());
         } catch (e) {
@@ -139,29 +122,15 @@ export class ModelService extends HTTPService {
         }
     }
 
-    async handleLegacyInfo(req: Request, res: Response, next: Function) {
+    async handleGetModelByNameId(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
-        const inputUniqueName = String(req.query?.uniqueName);
-        if (!inputUniqueName) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
+        const nameId = req.params?.nameId;
+        if (!nameId) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
         try {
-            const modelResult = await this.modelController.findByUniqueName(inputUniqueName);
+            const [username, uniqueName] = nameId.split(':');
+            const modelResult = await this.modelController.findByUsernameAndUniqueName(username, uniqueName);
             if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
-            const response = [
-                'id',
-                'createdTime',
-                'updatedTime',
-                'uniqueName',
-                'description',
-                'name',
-                'inputType',
-                'outputType',
-                'parameter'
-            ].reduce((obj, key) => ({...obj, [key]: modelResult[key]}), {
-                username: modelResult.register.username,
-                modelName: modelResult.name,
-                regionName: modelResult.image.region.name
-            });
-            return res.status(200).send(response);
+            return res.status(200).send(modelResult.toData());
         } catch (e) {
             return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
         }
@@ -190,6 +159,7 @@ export class ModelService extends HTTPService {
         return res.status(200).send(RESPONSE_MESSAGE.OK);
     }
 
+    // TODO: 구조 개선
     async deleteModel(req: Request, res: Response, next: Function) {
         const {modelId, imageId} = req.body;
 
@@ -242,7 +212,7 @@ export class ModelService extends HTTPService {
 
         const dependencies = container.putArchive(PlatformServer.config.dependenciesPath, {path: '/'});
         const controller = container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerDirectory});
-        await Promise.all([dependencies, container]);
+        await Promise.all([dependencies, controller]);
     }
 
     async createCachedContainer(docker: Dockerode, model: Model, keepRunning?: boolean) {
