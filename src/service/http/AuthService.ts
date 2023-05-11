@@ -99,7 +99,7 @@ export class AuthService extends HTTPService {
         });
 
         if (!isSessionError) {
-            return res.status(200).send({msg: 'ok'} as ResponseData);
+            return res.clearCookie('connect.sid', {path: '/'}).status(200).send({msg: 'ok'} as ResponseData);
         } else {
             return res.status(501).send({msg: 'server_error'} as ResponseData);
         }
