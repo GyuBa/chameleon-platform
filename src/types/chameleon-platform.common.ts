@@ -189,15 +189,17 @@ export enum SocketReceiveMode {
 }
 
 /* Upload Parameters */
-export type ModelUploadData = {
+export type ModelCommonUploadData = {
     modelName: string;
     inputType: string;
     outputType: string;
     regionName: string;
     parameters: string;
-    file: File;
     description: string
 }
+export type ModelImageUploadData = ModelCommonUploadData & { file: File }
+
+export type ModelDockerfileUploadData = ModelCommonUploadData & { files: File[] }
 
 export type ModelExecuteData = {
     modelId: number;
@@ -214,6 +216,22 @@ export type HistoriesRequestOptions = {
 }
 
 /* Etc Types */
+export type ResponseData = {
+    msg: 'ok' |
+        'server_error' |
+        'non_field_error' |
+        'unable_credential_errors' |
+        'duplicated_email_error' |
+        'duplicated_name_error' |
+        'not_authenticated_error' |
+        'not_found_error' |
+        'wrong_information_error' |
+        'wrong_request_error' |
+        'wrong_permission_error' |
+        'region_not_found';
+    reason?: string;
+}
+
 export type ModelInputInfo = {
     size: number;
     mimeType: string;
