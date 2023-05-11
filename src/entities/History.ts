@@ -30,7 +30,7 @@ export class History extends Common{
 
     @ManyToOne(
         () => Model,
-        (model) => model.id
+        (model) => model.id, {nullable: true}
     )
     @JoinColumn()
         model: Model;

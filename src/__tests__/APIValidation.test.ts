@@ -1,6 +1,7 @@
 import {TestingManager} from './common/TestingManager';
 import {LoginUtils} from './common/LoginUtils';
 import {PlatformAPI} from '../platform/PlatformAPI';
+import {HistoryStatus} from '../types/chameleon-platform.common';
 
 describe('API Validation', () => {
     beforeAll(async () => {
@@ -11,15 +12,15 @@ describe('API Validation', () => {
     test('getHistories', async () => {
         const histories = await PlatformAPI.getHistories();
         console.log(`${histories.length} histories`);
-        console.log(histories.filter(h => h.status !== 'cached'));
-        console.log(histories.filter(h => h.status === 'cached'));
+        console.log(histories.filter(h => h.status !== HistoryStatus.CACHED));
+        console.log(histories.filter(h => h.status === HistoryStatus.CACHED));
     });
 
     test('getMyHistories', async () => {
         const histories = await PlatformAPI.getMyHistories();
         console.log(`${histories.length} histories`);
-        console.log(histories.filter(h => h.status !== 'cached'));
-        console.log(histories.filter(h => h.status === 'cached'));
+        console.log(histories.filter(h => h.status !== HistoryStatus.CACHED));
+        console.log(histories.filter(h => h.status === HistoryStatus.CACHED));
     });
 
 

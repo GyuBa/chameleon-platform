@@ -4,7 +4,8 @@ import * as bcrypt from 'bcrypt';
 import {HTTPService} from '../../interfaces/http/HTTPService';
 import {Application} from 'express';
 import {Server} from 'http';
-import {User} from "../../../entities/User";
+import {User} from '../../../entities/User';
+import {ResponseData} from '../../../types/chameleon-platform.common';
 
 const userCache = new Map<number, User>();
 
@@ -52,14 +53,14 @@ export class PassportService extends HTTPService {
         try {
             const user = await this.userController.findByEmail(email);
             if (!(email && password)) {
-                return done(null, false, {reason: {msg: 'non_field_errors'}});
+                return done(null, false, {reason: {msg: 'non_field_error'} as ResponseData});
             }
             if (!user) {
-                return done(null, false, {reason: {msg: 'unable_credential_errors'}});
+                return done(null, false, {reason: {msg: 'unable_credential_errors'} as ResponseData});
             }
             const result = await bcrypt.compare(password, user.password);
             if (!result) {
-                return done(null, false, {reason: {msg: 'unable_credential_errors'}}); // 비밀번호 틀렸을 때
+                return done(null, false, {reason: {msg: 'unable_credential_errors'} as ResponseData}); // 비밀번호 틀렸을 때
             }
             return done(null, user);
         } catch (e) {

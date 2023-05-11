@@ -7,7 +7,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as Dockerode from 'dockerode';
 import PlatformServer from '../../core/PlatformServer';
-import {HistoryStatus, SocketMessageType, SocketReceiveMode} from "../../../types/chameleon-platform.common";
+import {HistoryStatus, SocketMessageType, SocketReceiveMode} from '../../../types/chameleon-platform.common';
 
 export default class DefaultSocketHandler extends PlatformService implements SocketHandler<DefaultSocketServer, DefaultSocket> {
     readonly handles: { [messageType: string]: SocketHandle } = {};
@@ -154,7 +154,11 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     console.error(`split.length=${split.length}, split=${split}`);
                     console.error(`dataString.length=${dataString.length}, dataString=${dataString}`);
                 }
-                this.handles[message.msg](server, socket, message);
+                try {
+                    this.handles[message.msg](server, socket, message);
+                } catch (e) {
+                    console.error(`[Socket, ${socket.remoteAddress}] onData - Message: ${JSON.stringify(message)}`);
+                }
             }
             let message;
             try {

@@ -1,10 +1,13 @@
 import axios, {AxiosInstance} from 'axios';
 import {
     HistoryEntityData,
-    ModelEntityData, ModelExecuteData,
+    ModelDockerfileUploadData,
+    ModelEntityData,
+    ModelExecuteData,
+    ModelImageUploadData,
     ModelsRequestOptions,
-    ModelUploadData,
     RegionEntityData,
+    ResponseData,
     UserEntityData
 } from '../types/chameleon-platform.common';
 
@@ -33,16 +36,23 @@ export class PlatformAPI {
 
     public static toFormData(data: any): FormData {
         const formData = new FormData();
-        Object.entries(data).forEach(([name, value]: [string, any]) => formData.append(name, value));
+        Object.entries(data).forEach(([name, value]: [string, any]) =>
+            Array.isArray(value) ? value.forEach(v => formData.append(name, v)) : formData.append(name, value)
+        );
         return formData;
     }
 
-    public static async uploadModel(uploadData: ModelUploadData): Promise<any> {
-        const response = await this.instance.post('/models/upload', this.toFormData(uploadData), this.uploadConfig);
+    public static async uploadModelWithImage(uploadData: ModelImageUploadData): Promise<ResponseData> {
+        const response = await this.instance.post('/models/upload-image', this.toFormData(uploadData), this.uploadConfig);
         return response?.data;
     }
 
-    public static async executeModel(executeData: ModelExecuteData): Promise<any> {
+    public static async uploadModelWithDockerfile(uploadData: ModelDockerfileUploadData): Promise<ResponseData> {
+        const response = await this.instance.post('/models/upload-dockerfile', this.toFormData(uploadData), this.uploadConfig);
+        return response?.data;
+    }
+
+    public static async executeModel(executeData: ModelExecuteData): Promise<ResponseData> {
         const response = await this.instance.post('/models/execute', this.toFormData(executeData), this.uploadConfig);
         return response?.data;
     }
@@ -83,6 +93,11 @@ export class PlatformAPI {
         return response?.data as ModelEntityData;
     }
 
+    public static async deleteModelById(modelId: number): Promise<ResponseData> {
+        const response = await this.instance.delete(`/models/delete/${modelId}`, this.defaultConfig);
+        return response?.data;
+    }
+
     public static async getHistories(options?: ModelsRequestOptions): Promise<HistoryEntityData[]> {
         const response = await this.instance.get('/histories', {...this.defaultConfig, params: options});
         this.restoreTimeProperty(response?.data);
@@ -93,25 +108,27 @@ export class PlatformAPI {
         return await this.getHistories({ownOnly: true});
     }
 
-    // TODO: 작업 중
-    public static async modifyPassword(uniqueName: string): Promise<UserEntityData> {
-        return {} as UserEntityData;
+    public static async modifyPassword(newPassword: string): Promise<ResponseData> {
+        const response = await this.instance.post('/auths/modify-password', {password: newPassword}, this.defaultConfig);
+        return response?.data;
     }
 
-    // TODO: 반환 형 타입 지정
-    public static async signIn(email: string, password: string): Promise<any> {
+    public static async signIn(email: string, password: string): Promise<ResponseData> {
         const response = await this.instance.post('/auths/sign-in', {email, password}, this.defaultConfig);
         return response?.data;
     }
 
-    // TODO: 반환 형 타입 지정
-    public static async signUp(email: string, password: string, username: string): Promise<any> {
+    public static async signOut(): Promise<ResponseData> {
+        const response = await this.instance.delete('/auths/sign-out', this.defaultConfig);
+        return response?.data;
+    }
+
+    public static async signUp(email: string, password: string, username: string): Promise<ResponseData> {
         const response = await this.instance.post('/auths/sign-up', {email, password, username}, this.defaultConfig);
         return response?.data;
     }
 
-    // TODO: 반환 형 명시, 함수명과 API도 동사 형태로 수정 필요
-    public static async updatePoint(amount: number) {
+    public static async updatePoint(amount: number): Promise<ResponseData> {
         const response = await this.instance.post('/points/update', {amount}, this.defaultConfig);
         return response?.data;
     }
