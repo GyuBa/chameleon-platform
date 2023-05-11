@@ -195,8 +195,8 @@ export class ModelService extends HTTPService {
             const region = image.region;
             const docker = new Dockerode(region);
             const histories = await this.historyController.findAllByModelId(model.id);
-            const cachedHistories = histories.filter(h => h.status === 'cached');
-            const finishedHistories = histories.filter(h => h.status === 'finished');
+            const cachedHistories = histories.filter(h => h.status === HistoryStatus.CACHED);
+            const finishedHistories = histories.filter(h => h.status === HistoryStatus.FINISHED);
             const cachedContainers = await Promise.all(cachedHistories.map(h => docker.getContainer(h.containerId)));
             await Promise.all(cachedContainers.map(c => c.remove()));
             const dockerImage = await docker.getImage(image.uniqueId);
