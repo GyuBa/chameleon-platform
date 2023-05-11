@@ -1,9 +1,9 @@
-import axios from "axios";
-import PlatformServer from "../../server/core/PlatformServer";
+import axios from 'axios';
+import PlatformServer from '../../server/core/PlatformServer';
 import {wrapper} from 'axios-cookiejar-support';
 import {CookieJar} from 'tough-cookie';
-import {PlatformAPI} from "../../platform/PlatformAPI";
-import * as LocalFormData from 'form-data';
+import {PlatformAPI} from '../../platform/PlatformAPI';
+import * as FormData from 'form-data';
 
 export class TestingManager {
     static async init() {
@@ -16,8 +16,10 @@ export class TestingManager {
         }));
 
         PlatformAPI.toFormData = (data: any) => {
-            const formData = new LocalFormData();
-            Object.entries(data).forEach(([name, value]: [string, string | Blob]) => formData.append(name, value));
+            const formData = new FormData();
+            Object.entries(data).forEach(([name, value]: [string, any]) =>
+                Array.isArray(value) ? value.forEach(v => formData.append(name, v)) : formData.append(name, value)
+            );
             return formData as any;
         };
     }
