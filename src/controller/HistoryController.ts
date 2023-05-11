@@ -42,6 +42,18 @@ export class HistoryController extends BaseController<History> {
         }
     }
 
+    async findAllByModelId(modelId: number): Promise<History[]> {
+        try {
+            return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
+                .select()
+                .where('Model.id=:modelId', {modelId})
+                .getMany();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     async findAllByImageAndStatus(image: Image, status: string): Promise<History[]> {
         try {
             return await HistoryController.selectWithJoin(this.repository.createQueryBuilder())
