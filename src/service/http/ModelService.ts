@@ -2,7 +2,6 @@ import * as express from 'express';
 import {Application, Request, Response} from 'express';
 import * as Dockerode from 'dockerode';
 import {Container} from 'dockerode';
-import {RESPONSE_MESSAGE} from '../../constant/Constants';
 import {Region} from '../../entities/Region';
 import {History} from '../../entities/History';
 import {Image} from '../../entities/Image';
@@ -15,34 +14,55 @@ import {MulterUtils} from '../../utils/MulterUtils';
 import PlatformServer from '../../server/core/PlatformServer';
 import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
-import {HistoryStatus} from '../../types/chameleon-platform.common';
+import {HistoryStatus, ResponseData} from '../../types/chameleon-platform.common';
+import * as fs from 'fs';
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
+const dockerfiles = multer({
+    fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/dockerfiles', storage: multer.diskStorage({
+        destination: function (req, file, callback) {
+            const request: Request & { requestTime?: number } = req as any;
+            if (!request.requestTime) {
+                request.requestTime = new Date().getTime();
+                fs.mkdirSync(`uploads/dockerfiles/${request.requestTime}/`, {recursive: true});
+            }
+            callback(null, `uploads/dockerfiles/${request.requestTime}/`);
+        },
+        filename: function (req, file, callback) {
+            callback(null, file.originalname);
+        }
+    })
+});
 
 export class ModelService extends HTTPService {
     private containerCachingLock = new Map<number, boolean>();
 
     init(app: Application, server: Server) {
         const router = express.Router();
-        router.post('/upload', images.single('file'), HTTPLogUtils.addBeginLogger(this.handleUpload, '/models/upload'));
+        router.post('/upload-image', images.single('file'), HTTPLogUtils.addBeginLogger(this.handleUpload, '/models/upload-image'));
+        router.post('/upload-dockerfile', dockerfiles.array('files'), HTTPLogUtils.addBeginLogger(this.handleUpload, '/models/upload-dockerfile'));
         router.post('/execute', inputs.single('input'), HTTPLogUtils.addBeginLogger(this.handleExecute, '/models/execute'));
         router.put('/update', HTTPLogUtils.addBeginLogger(this.handleUpdate, '/models/update'));
         router.get('/name/:nameId', HTTPLogUtils.addBeginLogger(this.handleGetModelByNameId, '/models/name/:nameId'));
+        router.delete('/delete/:modelId', HTTPLogUtils.addBeginLogger(this.handleDeleteModel, '/models/delete/:modelId'));
         router.get('/:id', HTTPLogUtils.addBeginLogger(this.handleGetModelById, '/models/:id'));
         router.get('/', HTTPLogUtils.addBeginLogger(this.handleGetModels, '/models'));
         app.use('/models', router);
     }
 
     async handleExecute(req: Request, res: Response, next: Function) {
-        if (!req.isAuthenticated()) res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        if (!req.isAuthenticated()) res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const {parameters: rawParameters, modelId} = req.body;
-        if (!(rawParameters && modelId && req.file)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
+        if (!(rawParameters && modelId && req.file)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
         const parameters = JSON.parse(rawParameters);
         const user: User = req.user as User;
         const model: Model = await this.modelController.findById(modelId);
 
-        if (!model) return res.status(401).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Model does not exist.'});
+        if (!model) return res.status(401).send({
+            msg: 'wrong_information_error',
+            reason: 'Model does not exist.'
+        } as ResponseData);
 
         setTimeout(async _ => {
             const image = model.image;
@@ -102,7 +122,7 @@ export class ModelService extends HTTPService {
     }
 
     async handleGetModels(req: Request, res: Response, next: Function) {
-        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const ownOnly = req.query.ownOnly === 'true';
         const user = req.user as User;
         const responseData = (ownOnly ? await this.modelController.findAllByUserId(user.id) : await this.modelController.getAll()).map(m => m.toData());
@@ -110,29 +130,29 @@ export class ModelService extends HTTPService {
     }
 
     async handleGetModelById(req: Request, res: Response, next: Function) {
-        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const id = req.params?.id;
-        if (!id || Number.isNaN(id)) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
+        if (!id || Number.isNaN(id)) return res.status(401).send({msg: 'non_field_error'} as ResponseData);
         try {
             const modelResult = await this.modelController.findById(parseInt(id));
-            if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
+            if (!modelResult) return res.status(404).send({msg: 'not_found_error'} as ResponseData);
             return res.status(200).send(modelResult.toData());
         } catch (e) {
-            return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
+            return res.status(501).send({msg: 'server_error'} as ResponseData);
         }
     }
 
     async handleGetModelByNameId(req: Request, res: Response, next: Function) {
-        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const nameId = req.params?.nameId;
-        if (!nameId) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
+        if (!nameId) return res.status(401).send({msg: 'non_field_error'} as ResponseData);
         try {
             const [username, uniqueName] = nameId.split(':');
             const modelResult = await this.modelController.findByUsernameAndUniqueName(username, uniqueName);
-            if (!modelResult) return res.status(404).send(RESPONSE_MESSAGE.NOT_FOUND);
+            if (!modelResult) return res.status(404).send({msg: 'not_found_error'} as ResponseData);
             return res.status(200).send(modelResult.toData());
         } catch (e) {
-            return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
+            return res.status(501).send({msg: 'server_error'} as ResponseData);
         }
     }
 
@@ -141,7 +161,7 @@ export class ModelService extends HTTPService {
         const {modelId, repository, modelName, description, inputType, outputType} = req.body;
 
         if (!(modelId && repository && modelName && description && inputType && outputType))
-            return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
+            return res.status(401).send({msg: 'non_field_error'} as ResponseData);
         try {
             const prevModel = await this.modelController.findById(modelId);
             prevModel.name = modelName;
@@ -153,27 +173,46 @@ export class ModelService extends HTTPService {
             // await this.modelController.updateModel(modelId, {name: modelName, inputType, outputType, description});
             // await this.imageController.updateImage(prevModel.image.id, {repository});
         } catch (e) {
-            return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
+            return res.status(501).send({msg: 'server_error'} as ResponseData);
         }
 
-        return res.status(200).send(RESPONSE_MESSAGE.OK);
+        return res.status(200).send({msg: 'ok'} as ResponseData);
     }
 
-    // TODO: 구조 개선
-    async deleteModel(req: Request, res: Response, next: Function) {
-        const {modelId, imageId} = req.body;
+    /* 테스트 및 검증 필요 */
+    async handleDeleteModel(req: Request, res: Response, next: Function) {
+        const {modelId} = req.body;
 
-        if (!(modelId && imageId)) return res.status(401).send(RESPONSE_MESSAGE.NON_FIELD);
-        if (!req.isAuthenticated()) return res.status(401).send(RESPONSE_MESSAGE.NOT_AUTH);
+        if (!(modelId)) return res.status(401).send({msg: 'non_field_error'} as ResponseData);
+        if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
+        const user = req.user as User;
 
         try {
-            await this.modelController.deleteById(modelId);
-            await this.imageController.deleteById(imageId);
-        } catch (e) {
-            return res.status(501).send(RESPONSE_MESSAGE.SERVER_ERROR);
-        }
+            const model = await this.modelController.findById(modelId);
+            if (model.register.id !== user.id) return res.status(401).send({msg: 'wrong_permission_error'} as ResponseData);
 
-        return res.status(200).send(RESPONSE_MESSAGE.OK);
+            const image = model.image;
+            const region = image.region;
+            const docker = new Dockerode(region);
+            const histories = await this.historyController.findAllByModelId(model.id);
+            const cachedHistories = histories.filter(h => h.status === 'cached');
+            const finishedHistories = histories.filter(h => h.status === 'finished');
+            const cachedContainers = await Promise.all(cachedHistories.map(h => docker.getContainer(h.containerId)));
+            await Promise.all(cachedContainers.map(c => c.remove()));
+            const dockerImage = await docker.getImage(image.uniqueId);
+            await dockerImage.remove();
+
+            await this.imageController.delete(image);
+            await Promise.all(cachedHistories.map(h => this.historyController.delete(h)));
+            for (const finishedHistory of finishedHistories) {
+                finishedHistory.model = null;
+                await this.historyController.save(finishedHistory);
+            }
+            await this.modelController.delete(model);
+        } catch (e) {
+            return res.status(501).send({msg: 'server_error'} as ResponseData);
+        }
+        return res.status(200).send({msg: 'ok'} as ResponseData);
     }
 
     async toPermalink(repository: string, tag: string) {
@@ -249,31 +288,46 @@ export class ModelService extends HTTPService {
 
     async handleUpload(req: Request, res: Response, next: Function) {
         const {regionName, modelName, description, inputType, outputType, parameters} = req.body;
-        if (!(regionName && modelName && description && inputType && outputType && req.file && parameters)) return res.status(501).send(RESPONSE_MESSAGE.NON_FIELD);
-        if (!(req.isAuthenticated())) return res.status(501).send(RESPONSE_MESSAGE.NOT_AUTH);
+        if (!(regionName && modelName && description && inputType && outputType && (req.files || req.file) && parameters)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
+        if (!(req.isAuthenticated())) return res.status(501).send({msg: 'not_authenticated_error'} as ResponseData);
 
         const region: Region = await this.regionController.findByName(regionName);
-        if (!region) return res.status(501).send(RESPONSE_MESSAGE.REG_NOT_FOUND);
+        if (!region) return res.status(501).send({msg: 'region_not_found'} as ResponseData);
 
-        const file = req.file;
         const docker = new Dockerode(region);
         const image: Image = new Image();
-        const username = req.user['username'].toLowerCase();
+        const user = req.user as User;
+        const username = user.username.toLowerCase();
         const imageTag = await this.toPermalink(username, modelName);
 
-        try {
-            await DockerUtils.loadImage(docker, file.path, {repo: username, tag: imageTag});
-        } catch (e) {
-            console.error(e);
-            res.status(501).send({...RESPONSE_MESSAGE.WRONG_INFO, reason: 'Wrong image file.'});
+        if (req.file) {
+            // Image file
+            const file = req.file;
+            try {
+                await DockerUtils.loadImage(docker, file.path, {repo: username, tag: imageTag});
+            } catch (e) {
+                console.error(e);
+                return res.status(501).send({
+                    msg: 'wrong_information_error',
+                    reason: 'Wrong image file.'
+                } as ResponseData);
+            }
+            image.path = file.path;
+        } else if (req.files) {
+            // Dockerfile
+            const files = req.files as Express.Multer.File[];
+            const context = files[0].destination;
+            await docker.buildImage({context, src: files.map(f => f.originalname)}, {t: `${username}:${imageTag}`});
+            image.path = context;
+        } else {
+            return res.status(501).send({msg: 'wrong_information_error', reason: 'Wrong upload type.'} as ResponseData);
         }
 
-        image.repository = req.user['username'].toLowerCase();
+        image.repository = username.toLowerCase();
         image.tag = imageTag;
         const insertedImage = await docker.getImage(username + ':' + imageTag);
         image.uniqueId = (await insertedImage.inspect()).Id;
         image.region = region;
-        image.path = file.path;
 
         const model: Model = new Model();
         model.name = modelName;
@@ -295,6 +349,7 @@ export class ModelService extends HTTPService {
                 debugLog: '/dev/null'
             }
         };
+
         // model-executor의 model configuration 기능 migration
         // TODO: 여유가 있다면 프론트에서 해당 뷰를 만들어야 함, 후순위
         model.parameters = JSON.parse(parameters);
@@ -304,6 +359,6 @@ export class ModelService extends HTTPService {
         await this.modelController.save(model);
 
         setTimeout(() => this.createCachedContainers(docker, model));
-        return res.status(200).send(RESPONSE_MESSAGE.OK);
+        return res.status(200).send({msg: 'ok'} as ResponseData);
     }
 }
