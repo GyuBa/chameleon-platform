@@ -17,7 +17,8 @@ export class ExpressService extends HTTPService {
                 limitSubquery: false, // If using MariaDB.
                 ttl: 86400
             }).connect(this.sessionController.repository),
-            secret: PlatformServer.config.sessionSecret
+            secret: PlatformServer.config.sessionSecret,
+            cookie: {httpOnly: false}
         }));
     }
 }
