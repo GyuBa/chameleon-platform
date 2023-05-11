@@ -4,7 +4,7 @@ import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
 import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
-import {ResponseData} from '../../types/chameleon-platform.common';
+import {HistoryStatus, ResponseData} from '../../types/chameleon-platform.common';
 
 export class HistoryService extends HTTPService {
     init(app: Application, server: Server) {
@@ -17,7 +17,7 @@ export class HistoryService extends HTTPService {
         if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const ownOnly = req.query.ownOnly === 'true';
         const user = req.user as User;
-        const responseData = (ownOnly ? await this.historyController.findAllByExecutorId(user.id) : await this.historyController.getAll()).map(m => m.toData());
+        const responseData = (ownOnly ? await this.historyController.findAllByExecutorId(user.id) : await this.historyController.getAll()).filter(h => h.status !== HistoryStatus.CACHED).map(m => m.toData());
         return res.status(200).send(responseData);
     }
 }
