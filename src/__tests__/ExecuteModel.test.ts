@@ -3,7 +3,7 @@ import {LoginUtils} from './common/LoginUtils';
 import * as fs from 'fs';
 import PlatformServer from '../server/core/PlatformServer';
 import {ModelController} from '../controller/ModelController';
-import {PlatformAPI} from "../platform/PlatformAPI";
+import {PlatformAPI} from '../platform/PlatformAPI';
 
 function sleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -19,7 +19,7 @@ describe('Execute model', () => {
     // (chameleon-platform root에서) curl -o test.tar http://files.chameleon.best/images/simple-output-image.tar
     test('upload', async () => {
         try {
-            const result = await PlatformAPI.uploadModel({
+            const result = await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
                 modelName,
                 description: '# test model description',
