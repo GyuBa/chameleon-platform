@@ -2,7 +2,7 @@ import {v4 as uuidv4} from 'uuid';
 import {RawData} from 'ws';
 import WSManager from './manager/WSManager';
 import {IWSocket, WebSocketHandler} from '../types/chameleon-platform';
-import * as expressWs from "express-ws";
+import * as expressWs from 'express-ws';
 
 export default class WSServer<SocketData, Manager extends WSManager> {
     readonly app: expressWs.Application;
