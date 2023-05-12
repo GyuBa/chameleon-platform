@@ -7,8 +7,10 @@ export interface HistoryEntityData {
     status: HistoryStatus;
     inputPath: string;
     inputInfo: ModelInputInfo;
+    inputType: ModelInputType;
     outputPath: string;
     outputInfo: ModelOutputInfo;
+    outputType: ModelOutputType;
     description: string;
     executor: UserEntityData;
     model: ModelEntityData;
@@ -25,8 +27,10 @@ export const History: Array<keyof HistoryEntityData> = [
     'status',
     'inputPath',
     'inputInfo',
+    'inputType',
     'outputPath',
     'outputInfo',
+    'outputType',
     'description',
     'executor',
     'model',
