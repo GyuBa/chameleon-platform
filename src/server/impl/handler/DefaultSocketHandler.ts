@@ -120,6 +120,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             outputInfo.fileName = outputInfo.fileName ? outputInfo.fileName : `output_${inputInfo.originalName}`;
             history.outputInfo = outputInfo;
             history.status = HistoryStatus.FINISHED;
+            history.endedTime = new Date();
             await this.historyController.save(history);
             // TODO: TIMING - FINISHED
             const targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history, PlatformServer.wsServer.manager.getAuthenticatedSockets());
