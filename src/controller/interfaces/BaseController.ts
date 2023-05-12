@@ -43,7 +43,7 @@ export class BaseController<Entity extends ObjectLiteral & { id: number | string
         }
     }
 
-    async deleteById(id: number) {
+    async deleteById(id: number | string) {
         try {
             await this.repository.delete(id);
         } catch (e) {

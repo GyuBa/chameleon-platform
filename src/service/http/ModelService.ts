@@ -16,6 +16,7 @@ import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 import {HistoryStatus, ResponseData} from '../../types/chameleon-platform.common';
 import * as fs from 'fs';
+import {DateUtils} from "../../utils/DateUtils";
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -75,12 +76,12 @@ export class ModelService extends HTTPService {
 
             const cachedHistory = await this.historyController.findAndUseCache(image);
             if (cachedHistory) {
-                console.log(`[${model.name}] Found cached containers`);
+                console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) Found cached containers`));
                 history = cachedHistory;
                 container = await docker.getContainer(history.containerId);
                 await container.restart();
             } else {
-                console.log(`[${model.name}] No cached containers`);
+                console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) No cached containers`));
                 const {
                     history: newHistory,
                     container: newContainer
@@ -92,7 +93,7 @@ export class ModelService extends HTTPService {
             history.startedTime = new Date();
             history.executor = user;
             history.status = HistoryStatus.INITIALIZING;
-            history.inputPath = file.path;
+            history.inputPath = file.path.replace(/\\/g, '/');
             history.inputInfo = {originalName: file.originalname, size: file.size, mimeType: file.mimetype};
             history.parameters = parameters;
             await this.historyController.save(history);
@@ -181,35 +182,51 @@ export class ModelService extends HTTPService {
 
     /* 테스트 및 검증 필요 */
     async handleDeleteModel(req: Request, res: Response, next: Function) {
-        const {modelId} = req.body;
+        const {modelId} = req.params;
 
-        if (!(modelId)) return res.status(401).send({msg: 'non_field_error'} as ResponseData);
+        if (!modelId || Number.isNaN(modelId)) return res.status(401).send({msg: 'non_field_error'} as ResponseData);
         if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const user = req.user as User;
 
         try {
-            const model = await this.modelController.findById(modelId);
+            const model = await this.modelController.findById(parseInt(modelId));
             if (model.register.id !== user.id) return res.status(401).send({msg: 'wrong_permission_error'} as ResponseData);
-
+            if (this.containerCachingLock.get(model.id)) {
+                return res.status(401).send({
+                    msg: 'server_error',
+                    reason: 'Model is caching. Please try in a while.'
+                } as ResponseData);
+            }
             const image = model.image;
             const region = image.region;
             const docker = new Dockerode(region);
             const histories = await this.historyController.findAllByModelId(model.id);
             const cachedHistories = histories.filter(h => h.status === HistoryStatus.CACHED);
-            const finishedHistories = histories.filter(h => h.status === HistoryStatus.FINISHED);
+            const notCachedHistories = histories.filter(h => h.status !== HistoryStatus.CACHED);
+            if (histories.some(h => h.status === HistoryStatus.RUNNING || h.status === HistoryStatus.INITIALIZING)) {
+                return res.status(401).send({msg: 'server_error', reason: 'Model is still running.'} as ResponseData);
+            }
+            console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) Start model deletion`));
+            this.containerCachingLock.set(model.id, true);
             const cachedContainers = await Promise.all(cachedHistories.map(h => docker.getContainer(h.containerId)));
             await Promise.all(cachedContainers.map(c => c.remove()));
-            const dockerImage = await docker.getImage(image.uniqueId);
-            await dockerImage.remove();
-
-            await this.imageController.delete(image);
-            await Promise.all(cachedHistories.map(h => this.historyController.delete(h)));
-            for (const finishedHistory of finishedHistories) {
-                finishedHistory.model = null;
-                await this.historyController.save(finishedHistory);
+            try {
+                const dockerImage = await docker.getImage(image.uniqueId);
+                await dockerImage.remove({force: true});
+            } catch (e) {
+                console.error(e);
             }
-            await this.modelController.delete(model);
+            await this.imageController.delete(image);
+            await Promise.all(cachedHistories.map(h => this.historyController.deleteById(h.id)));
+            await Promise.all(notCachedHistories.map(h => {
+                h.model = null;
+                return this.historyController.save(h);
+            }));
+            await this.modelController.deleteById(model.id);
+            this.containerCachingLock.delete(model.id);
+            console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) End model deletion`));
         } catch (e) {
+            console.error(e);
             return res.status(501).send({msg: 'server_error'} as ResponseData);
         }
         return res.status(200).send({msg: 'ok'} as ResponseData);
@@ -312,13 +329,13 @@ export class ModelService extends HTTPService {
                     reason: 'Wrong image file.'
                 } as ResponseData);
             }
-            image.path = file.path;
+            image.path = file.path.replace(/\\/g, '/');
         } else if (req.files) {
             // Dockerfile
             const files = req.files as Express.Multer.File[];
             const context = files[0].destination;
             await docker.buildImage({context, src: files.map(f => f.originalname)}, {t: `${username}:${imageTag}`});
-            image.path = context;
+            image.path = context.replace(/\\/g, '/');
         } else {
             return res.status(501).send({msg: 'wrong_information_error', reason: 'Wrong upload type.'} as ResponseData);
         }
