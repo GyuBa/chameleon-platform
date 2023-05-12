@@ -190,27 +190,42 @@ export class ModelService extends HTTPService {
         try {
             const model = await this.modelController.findById(parseInt(modelId));
             if (model.register.id !== user.id) return res.status(401).send({msg: 'wrong_permission_error'} as ResponseData);
+            if (this.containerCachingLock.get(model.id)) {
+                return res.status(401).send({
+                    msg: 'server_error',
+                    reason: 'Model is caching. Please try in a while.'
+                } as ResponseData);
+            }
             const image = model.image;
             const region = image.region;
             const docker = new Dockerode(region);
             const histories = await this.historyController.findAllByModelId(model.id);
             const cachedHistories = histories.filter(h => h.status === HistoryStatus.CACHED);
-            const finishedHistories = histories.filter(h => h.status === HistoryStatus.FINISHED);
-            if (histories.length !== cachedHistories.length + finishedHistories.length) {
+            const notCachedHistories = histories.filter(h => h.status !== HistoryStatus.CACHED);
+            if (histories.some(h => h.status === HistoryStatus.RUNNING || h.status === HistoryStatus.INITIALIZING)) {
                 return res.status(401).send({msg: 'server_error', reason: 'Model is still running.'} as ResponseData);
             }
+            console.log(`[${model.name}] Start model deletion`);
+            this.containerCachingLock.set(model.id, true);
             const cachedContainers = await Promise.all(cachedHistories.map(h => docker.getContainer(h.containerId)));
             await Promise.all(cachedContainers.map(c => c.remove()));
-            const dockerImage = await docker.getImage(image.uniqueId);
-            await dockerImage.remove({force: true});
-            await this.imageController.delete(image);
-            await Promise.all(cachedHistories.map(h => this.historyController.delete(h)));
-            for (const finishedHistory of histories) {
-                finishedHistory.model = null;
-                await this.historyController.save(finishedHistory);
+            try {
+                const dockerImage = await docker.getImage(image.uniqueId);
+                await dockerImage.remove({force: true});
+            } catch (e) {
+                console.error(e);
             }
-            await this.modelController.delete(model);
+            await this.imageController.delete(image);
+            await Promise.all(cachedHistories.map(h => this.historyController.deleteById(h.id)));
+            await Promise.all(notCachedHistories.map(h => {
+                h.model = null;
+                return this.historyController.save(h);
+            }));
+            await this.modelController.deleteById(model.id);
+            this.containerCachingLock.delete(model.id);
+            console.log(`[${model.name}] End model deletion`);
         } catch (e) {
+            console.error(e);
             return res.status(501).send({msg: 'server_error'} as ResponseData);
         }
         return res.status(200).send({msg: 'ok'} as ResponseData);
@@ -313,13 +328,13 @@ export class ModelService extends HTTPService {
                     reason: 'Wrong image file.'
                 } as ResponseData);
             }
-            image.path = file.path;
+            image.path = file.path.replace(/\\/g, '/');
         } else if (req.files) {
             // Dockerfile
             const files = req.files as Express.Multer.File[];
             const context = files[0].destination;
             await docker.buildImage({context, src: files.map(f => f.originalname)}, {t: `${username}:${imageTag}`});
-            image.path = context;
+            image.path = context.replace(/\\/g, '/');
         } else {
             return res.status(501).send({msg: 'wrong_information_error', reason: 'Wrong upload type.'} as ResponseData);
         }
