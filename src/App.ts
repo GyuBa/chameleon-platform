@@ -12,11 +12,15 @@ import PlatformServer from './server/core/PlatformServer';
 import DefaultWSHandler from './server/impl/handler/DefaultWSHandler';
 import DefaultSocketHandler from './server/impl/handler/DefaultSocketHandler';
 import {ExpressService} from './service/http/ExpressService';
-import {RegionService} from "./service/http/RegionService";
-import {UserService} from "./service/http/UserService";
-import {HistoryService} from "./service/http/HistoryService";
+import {RegionService} from './service/http/RegionService';
+import {UserService} from './service/http/UserService';
+import {HistoryService} from './service/http/HistoryService';
 
 !async function () {
+    process.on('unhandledRejection', (err: Error, promise) => {
+        console.error('Unhandled rejection:', err.stack || err);
+    });
+
     const httpServer: HTTPServer = new HTTPServer({
         wsOptions: {
             perMessageDeflate: {
