@@ -16,6 +16,7 @@ import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 import {HistoryStatus, ResponseData} from '../../types/chameleon-platform.common';
 import * as fs from 'fs';
+import {DateUtils} from "../../utils/DateUtils";
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -75,12 +76,12 @@ export class ModelService extends HTTPService {
 
             const cachedHistory = await this.historyController.findAndUseCache(image);
             if (cachedHistory) {
-                console.log(`[${model.name}] Found cached containers`);
+                console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) Found cached containers`));
                 history = cachedHistory;
                 container = await docker.getContainer(history.containerId);
                 await container.restart();
             } else {
-                console.log(`[${model.name}] No cached containers`);
+                console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) No cached containers`));
                 const {
                     history: newHistory,
                     container: newContainer
@@ -205,7 +206,7 @@ export class ModelService extends HTTPService {
             if (histories.some(h => h.status === HistoryStatus.RUNNING || h.status === HistoryStatus.INITIALIZING)) {
                 return res.status(401).send({msg: 'server_error', reason: 'Model is still running.'} as ResponseData);
             }
-            console.log(`[${model.name}] Start model deletion`);
+            console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) Start model deletion`));
             this.containerCachingLock.set(model.id, true);
             const cachedContainers = await Promise.all(cachedHistories.map(h => docker.getContainer(h.containerId)));
             await Promise.all(cachedContainers.map(c => c.remove()));
@@ -223,7 +224,7 @@ export class ModelService extends HTTPService {
             }));
             await this.modelController.deleteById(model.id);
             this.containerCachingLock.delete(model.id);
-            console.log(`[${model.name}] End model deletion`);
+            console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) End model deletion`));
         } catch (e) {
             console.error(e);
             return res.status(501).send({msg: 'server_error'} as ResponseData);

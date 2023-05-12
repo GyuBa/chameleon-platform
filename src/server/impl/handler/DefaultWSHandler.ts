@@ -2,7 +2,8 @@ import {RawData} from 'ws';
 import {DefaultWSocket, DefaultWSServer, WebSocketHandle, WebSocketHandler} from '../../../types/chameleon-platform';
 import {PlatformService} from '../../../service/interfaces/PlatformService';
 import PlatformServer from '../../core/PlatformServer';
-import {WSMessageType} from "../../../types/chameleon-platform.common";
+import {WSMessageType} from '../../../types/chameleon-platform.common';
+import {DateUtils} from '../../../utils/DateUtils';
 
 
 export default class DefaultWSHandler extends PlatformService implements WebSocketHandler<DefaultWSServer, DefaultWSocket> {
@@ -13,7 +14,7 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
         super();
 
         this.handles[WSMessageType.PATH] = async (server: DefaultWSServer, socket: DefaultWSocket, data: any) => {
-            console.log(`[WebSocket, ${socket.req.ip}] Path - ${data.path}`);
+            console.log(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] Path - ${data.path}`);
             socket.data.path = data.path;
         };
 
@@ -24,7 +25,7 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
             const history = await this.historyController.findById(data.historyId);
             const historySockets = PlatformServer.socketServer.manager.getHistorySockets(history);
             const resizeOptions = {rows: data.rows > 0 ? data.rows : 1, cols: data.cols > 0 ? data.cols : 1};
-            console.log(`[WebSocket, ${socket.req.ip}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
+            console.log(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
             PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, historySockets);
         };
     }
@@ -38,7 +39,7 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
         try {
             this.handles[message.msg](server, socket, message);
         } catch (e) {
-            console.error(`[WebSocket, ${socket.req.ip}] onMessage - Message: ${JSON.stringify(message)}`);
+            console.error(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] onMessage - Message: ${JSON.stringify(message)}`);
         }
     }
 
