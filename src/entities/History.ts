@@ -2,10 +2,16 @@ import {Column, Entity, JoinColumn, ManyToOne} from 'typeorm';
 import {Common} from './interfaces/Common';
 import {Model} from './Model';
 import {User} from './User';
-import {HistoryStatus, ModelInputInfo, ModelOutputInfo} from '../types/chameleon-platform.common';
+import {
+    HistoryStatus,
+    ModelInputInfo,
+    ModelInputType,
+    ModelOutputInfo,
+    ModelOutputType
+} from '../types/chameleon-platform.common';
 
 @Entity()
-export class History extends Common{
+export class History extends Common {
     @Column({type: 'enum', enum: HistoryStatus})
         status: string;
     @Column()
@@ -14,11 +20,14 @@ export class History extends Common{
         inputPath: string;
     @Column({nullable: true, type: 'json'})
         inputInfo: ModelInputInfo;
-
+    @Column({nullable: true})
+        inputType: ModelInputType;
     @Column({nullable: true})
         outputPath: string;
     @Column({nullable: true, type: 'json'})
         outputInfo: ModelOutputInfo;
+    @Column({nullable: true})
+        outputType: ModelOutputType;
     @Column({nullable: true, type: 'text'})
         description: string;
     @ManyToOne(

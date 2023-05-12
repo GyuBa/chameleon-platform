@@ -280,6 +280,8 @@ export class ModelService extends HTTPService {
         history.containerId = container.id;
         history.status = HistoryStatus.CACHED;
         history.model = model;
+        history.inputType = model.inputType;
+        history.outputType = model.outputType;
 
         await container.start();
         await this.addControllerToContainer(container, model);
