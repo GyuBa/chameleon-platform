@@ -20,15 +20,14 @@ export class History extends Common {
         inputPath: string;
     @Column({nullable: true, type: 'json'})
         inputInfo: ModelInputInfo;
-    @Column({nullable: true, enum: ModelInputType})
-        inputType: string;
-
+    @Column({nullable: true})
+        inputType: ModelInputType;
     @Column({nullable: true})
         outputPath: string;
     @Column({nullable: true, type: 'json'})
         outputInfo: ModelOutputInfo;
-    @Column({nullable: true, enum: ModelOutputType})
-        outputType: string;
+    @Column({nullable: true})
+        outputType: ModelOutputType;
     @Column({nullable: true, type: 'text'})
         description: string;
     @ManyToOne(
