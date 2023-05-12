@@ -237,9 +237,9 @@ export type ResponseData = {
 }
 
 export type ModelInputInfo = {
-    size: number;
     mimeType: string;
-    originalName: string;
+    fileSize: number;
+    fileName: string;
 }
 
 export type ModelOutputInfo = {

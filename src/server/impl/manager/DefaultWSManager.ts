@@ -22,7 +22,7 @@ export default class DefaultWSManager extends WSManager {
     }
 
     getModelSockets(model: Model, sockets: DefaultWSocket[] = this.getAllSockets()) {
-        return sockets.filter(s => s.data.path?.startsWith(`model/${model.uniqueName}`));
+        return sockets.filter(s => s.data.path?.startsWith(`model/${model.register.username}/${model.uniqueName}`));
     }
 
     getHistorySockets(history: History, sockets: DefaultWSocket[] = this.getAllSockets()) {

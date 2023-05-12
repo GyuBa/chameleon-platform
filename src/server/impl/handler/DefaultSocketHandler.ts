@@ -118,7 +118,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                 /* empty */
             }
             outputInfo.fileSize = fs.existsSync(history.outputPath) ? fs.statSync(history.outputPath).size : 0;
-            outputInfo.fileName = outputInfo.fileName ? outputInfo.fileName : `output_${inputInfo.originalName}`;
+            outputInfo.fileName = outputInfo.fileName ? outputInfo.fileName : `output_${inputInfo.fileName}`;
             history.outputInfo = outputInfo;
             history.status = HistoryStatus.FINISHED;
             history.endedTime = new Date();

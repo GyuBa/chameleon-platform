@@ -94,7 +94,7 @@ export class ModelService extends HTTPService {
             history.executor = user;
             history.status = HistoryStatus.INITIALIZING;
             history.inputPath = file.path.replace(/\\/g, '/');
-            history.inputInfo = {originalName: file.originalname, size: file.size, mimeType: file.mimetype};
+            history.inputInfo = {fileName: file.originalname, fileSize: file.size, mimeType: file.mimetype};
             history.parameters = parameters;
             await this.historyController.save(history);
             // TODO: TIMING - INITIALIZING
