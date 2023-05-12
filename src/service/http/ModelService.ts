@@ -92,7 +92,7 @@ export class ModelService extends HTTPService {
             history.startedTime = new Date();
             history.executor = user;
             history.status = HistoryStatus.INITIALIZING;
-            history.inputPath = file.path;
+            history.inputPath = file.path.replace(/\\/g, '/');
             history.inputInfo = {originalName: file.originalname, size: file.size, mimeType: file.mimetype};
             history.parameters = parameters;
             await this.historyController.save(history);
@@ -181,30 +181,31 @@ export class ModelService extends HTTPService {
 
     /* 테스트 및 검증 필요 */
     async handleDeleteModel(req: Request, res: Response, next: Function) {
-        const {modelId} = req.body;
+        const {modelId} = req.params;
 
-        if (!(modelId)) return res.status(401).send({msg: 'non_field_error'} as ResponseData);
+        if (!modelId || Number.isNaN(modelId)) return res.status(401).send({msg: 'non_field_error'} as ResponseData);
         if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const user = req.user as User;
 
         try {
-            const model = await this.modelController.findById(modelId);
+            const model = await this.modelController.findById(parseInt(modelId));
             if (model.register.id !== user.id) return res.status(401).send({msg: 'wrong_permission_error'} as ResponseData);
-
             const image = model.image;
             const region = image.region;
             const docker = new Dockerode(region);
             const histories = await this.historyController.findAllByModelId(model.id);
             const cachedHistories = histories.filter(h => h.status === HistoryStatus.CACHED);
             const finishedHistories = histories.filter(h => h.status === HistoryStatus.FINISHED);
+            if (histories.length !== cachedHistories.length + finishedHistories.length) {
+                return res.status(401).send({msg: 'server_error', reason: 'Model is still running.'} as ResponseData);
+            }
             const cachedContainers = await Promise.all(cachedHistories.map(h => docker.getContainer(h.containerId)));
             await Promise.all(cachedContainers.map(c => c.remove()));
             const dockerImage = await docker.getImage(image.uniqueId);
-            await dockerImage.remove();
-
+            await dockerImage.remove({force: true});
             await this.imageController.delete(image);
             await Promise.all(cachedHistories.map(h => this.historyController.delete(h)));
-            for (const finishedHistory of finishedHistories) {
+            for (const finishedHistory of histories) {
                 finishedHistory.model = null;
                 await this.historyController.save(finishedHistory);
             }
