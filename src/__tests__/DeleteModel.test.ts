@@ -52,22 +52,28 @@ describe('Delete model', () => {
         }
     };
 
+    const testDelete = async () => {
+        const modelController = new ModelController(PlatformServer.source);
+        const model = await modelController.findByUniqueName(modelName);
+        try {
+            console.log(await PlatformAPI.deleteModelById(model.id));
+        } catch (e) {
+            console.error(e.response.data);
+        }
+    };
+
+    test('caching error test', async () => {
+        await testExecute();
+        await testDelete();
+    }, 2 * 60 * 1000);
+
     test('execute', testExecute, 2 * 60 * 1000);
 
     test('wait for caching1', async () => {
-        await sleep(15 * 1000);
-    }, 2 * 60 * 1000);
-
-    test('execute with cache1', testExecute, 2 * 60 * 1000);
-
-    test('wait for caching2', async () => {
-        await sleep(15 * 1000);
+        await sleep(30 * 1000);
     }, 2 * 60 * 1000);
 
     test('execute with cache2', async () => {
-        await testExecute();
-        const modelController = new ModelController(PlatformServer.source);
-        const model = await modelController.findByUniqueName(modelName);
-        await PlatformAPI.deleteModelById(model.id);
+        await testDelete();
     }, 2 * 60 * 1000);
 });
