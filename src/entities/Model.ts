@@ -39,4 +39,10 @@ export class Model extends Common {
 
     @Column({type: 'json'})
         config: ModelConfig;
+
+    @Column({nullable: true})
+        category: string;
+
+    @Column({default: 0})
+        price: number;
 }
