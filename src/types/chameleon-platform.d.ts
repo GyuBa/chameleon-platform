@@ -12,7 +12,7 @@ import * as stream from 'stream';
 import {Terminal} from 'xterm-headless';
 import {SerializeAddon} from 'xterm-addon-serialize';
 import {History} from '../entities/History';
-import {SocketReceiveMode} from "./chameleon-platform.common";
+import {SocketReceiveMode} from './chameleon-platform.common';
 
 export type Resolver = (value?: unknown) => void;
 type ReadStreamClose = (callback?: (err?: NodeJS.ErrnoException | null) => void) => void;
