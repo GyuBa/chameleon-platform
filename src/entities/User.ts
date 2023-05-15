@@ -6,10 +6,12 @@ import {Common} from './interfaces/Common';
 export class User extends Common {
     @Column()
         email: string;
-
     @Column()
         password: string;
 
     @Column()
         username: string;
+
+    @Column({default: 0})
+        point: number;
 }
