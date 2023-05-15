@@ -72,6 +72,8 @@ export interface ModelEntityData {
     outputType: ModelOutputType;
     parameters: ModelParameters;
     config: ModelConfig;
+    category: string;
+    point: number;
 }
 
 export const Model: Array<keyof ModelEntityData> = [
@@ -88,6 +90,8 @@ export const Model: Array<keyof ModelEntityData> = [
     'outputType',
     'parameters',
     'config',
+    'category',
+    'point'
 ];
 
 
@@ -111,12 +115,14 @@ export interface UserEntityData {
     id: number;
     email: string;
     username: string;
+    point: number;
 }
 
 export const User: Array<keyof UserEntityData> = [
     'id',
     'email',
     'username',
+    'point'
 ];
 
 export interface WalletEntityData {
