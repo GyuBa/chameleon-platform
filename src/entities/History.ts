@@ -38,8 +38,19 @@ export class History extends Common {
         executor: User;
 
     @ManyToOne(
+        () => History,
+        (history) => history.id,
+        {nullable: true}
+    )
+        parent: History;
+
+    @Column({default: 0})
+        numberOfParents: number;
+
+    @ManyToOne(
         () => Model,
-        (model) => model.id, {nullable: true}
+        (model) => model.id,
+        {nullable: true}
     )
     @JoinColumn()
         model: Model;
