@@ -12,7 +12,8 @@ import * as stream from 'stream';
 import {Terminal} from 'xterm-headless';
 import {SerializeAddon} from 'xterm-addon-serialize';
 import {History} from '../entities/History';
-import {SocketReceiveMode} from './chameleon-platform.common';
+import {ExecutionData, ModelInputInfo, SocketReceiveMode} from './chameleon-platform.common';
+import {User} from '../entities/User';
 
 export type Resolver = (value?: unknown) => void;
 type ReadStreamClose = (callback?: (err?: NodeJS.ErrnoException | null) => void) => void;
@@ -41,6 +42,9 @@ export interface WebSocketHandler<Server, Socket> {
 
 export type DefaultSocketServer = SocketServer<DefaultSocketData, DefaultSocketManager>;
 export type DefaultSocketData = {
+    isMainConnection: boolean;
+    executionData?: ExecutionData;
+    executedHistory?: History;
     terminalBuffer: string;
     terminalBufferingLock: boolean;
     terminalDatabaseLock: boolean;
@@ -48,6 +52,7 @@ export type DefaultSocketData = {
     receiveMode: SocketReceiveMode;
     receivedBytes: number;
     fileSize: number;
+    localSavePath: string;
     writeStream: stream.Writable;
     readStream: stream.Readable & { close?: ReadStreamClose };
     fileReceiveResolver: Resolver;
@@ -75,6 +80,14 @@ export type PlatformConfig = {
     socketPort: number;
     httpPort: number;
     db: MysqlConnectionOptions;
+};
+
+export type ModelExecutionOptions = {
+    executor: User;
+    parent?: History
+    parameters: any;
+    inputPath: string;
+    inputInfo: ModelInputInfo;
 };
 
 export type SocketHandle = (client: DefaultSocketServer, socket: DefaultSocket, message: any) => void;
