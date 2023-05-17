@@ -73,7 +73,7 @@ export class ModelExecutionManager extends ServiceManager {
 
         const excludePaths = [paths.script, paths.controllerDirectory, '/dev/null'];
         const clearPaths = Object.values(paths).filter(p => !excludePaths.includes(p)).sort();
-        const initCommand = [`mkdir -p ${paths.controllerDirectory}`, ...clearPaths.map(p => `rm -rf "${p}" && mkdir -p $(dirname "${p}")`)].join(' && ');
+        const initCommand = [`mkdir -p ${paths.controllerDirectory}`, 'mkdir -p /usr/local/bin', `ln -s ${paths.controllerDirectory}/controller /usr/local/bin/chameleon`, ...clearPaths.map(p => `rm -rf "${p}" && mkdir -p $(dirname "${p}")`)].join(' && ');
         await DockerUtils.exec(container, initCommand);
 
         const dependencies = container.putArchive(PlatformServer.config.dependenciesPath, {path: '/'});
