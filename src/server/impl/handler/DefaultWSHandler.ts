@@ -2,7 +2,7 @@ import {RawData} from 'ws';
 import {DefaultWSocket, DefaultWSServer, WebSocketHandle, WebSocketHandler} from '../../../types/chameleon-platform';
 import {PlatformService} from '../../../service/interfaces/PlatformService';
 import PlatformServer from '../../core/PlatformServer';
-import {WSMessageType} from '../../../types/chameleon-platform.common';
+import {WSMessageType, WSPathMessage, WSTerminalResizeMessage} from '../../../types/chameleon-platform.common';
 import {DateUtils} from '../../../utils/DateUtils';
 
 
@@ -13,20 +13,20 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
     constructor() {
         super();
 
-        this.handles[WSMessageType.PATH] = async (server: DefaultWSServer, socket: DefaultWSocket, data: any) => {
+        this.handles[WSMessageType.PATH] = async (server: DefaultWSServer, socket: DefaultWSocket, data: WSPathMessage) => {
             console.log(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] Path - ${data.path}`);
             socket.data.path = data.path;
         };
 
-        this.handles[WSMessageType.TERMINAL_RESIZE] = async (server: DefaultWSServer, socket: DefaultWSocket, data: any) => {
+        this.handles[WSMessageType.TERMINAL_RESIZE] = async (server: DefaultWSServer, socket: DefaultWSocket, data: WSTerminalResizeMessage) => {
             if (!socket.req.isAuthenticated() || data.historyId) {
                 return;
             }
             const history = await this.historyController.findById(data.historyId);
-            const historySockets = PlatformServer.socketServer.manager.getHistorySockets(history);
+            const historyMainSocket = PlatformServer.socketServer.manager.getHistoryMainSocket(history);
             const resizeOptions = {rows: data.rows > 0 ? data.rows : 1, cols: data.cols > 0 ? data.cols : 1};
             console.log(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
-            PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, historySockets);
+            PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, [historyMainSocket]);
         };
     }
 

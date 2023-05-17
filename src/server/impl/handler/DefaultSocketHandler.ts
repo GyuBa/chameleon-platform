@@ -7,8 +7,15 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as Dockerode from 'dockerode';
 import PlatformServer from '../../core/PlatformServer';
-import {HistoryStatus, SocketMessageType, SocketReceiveMode} from '../../../types/chameleon-platform.common';
-import {DateUtils} from "../../../utils/DateUtils";
+import {
+    HistoryStatus, SocketFileMessage, SocketFileReceiveEndMessage, SocketFileWaitMessage,
+    SocketLaunchMessage,
+    SocketMessageType, SocketProcessEndMessage,
+    SocketReceiveMode, SocketTerminalMessage
+} from '../../../types/chameleon-platform.common';
+import {DateUtils} from '../../../utils/DateUtils';
+import {MulterUtils} from "../../../utils/MulterUtils";
+import {Model} from "../../../entities/Model";
 
 export default class DefaultSocketHandler extends PlatformService implements SocketHandler<DefaultSocketServer, DefaultSocket> {
     readonly handles: { [messageType: string]: SocketHandle } = {};
@@ -16,45 +23,91 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
     constructor() {
         super();
 
-        this.handles[SocketMessageType.LAUNCH] = async (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.LAUNCH] = async (server: DefaultSocketServer, socket: DefaultSocket, message: SocketLaunchMessage) => {
+            socket.data.isMainConnection = message.isMainConnection;
+            socket.data.executionData = message.executionData;
             const history = socket.data.history = await this.historyController.findById(message.historyId);
-            const model = history.model;
-            const config = model.config;
-            const paths = config.paths;
+            if (socket.data.isMainConnection) {
+                const model = history.model;
+                const config = model.config;
+                const paths = config.paths;
 
-            console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) Launch - Model: ${model.name}, Executor: ${socket.data.history.executor.username}, Image: ${model.image.getRepositoryTagString()}, Container: ${history.containerId}`);
+                console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) Launch - Model: ${model.name}, Executor: ${socket.data.history.executor.username}, Image: ${model.image.getRepositoryTagString()}, Container: ${history.containerId}`);
 
-            console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendFile (Input) - InputPath: ${history.inputPath}, FileSize: ${fs.statSync(history.inputPath).size}`);
-            await server.manager.sendFile(socket, history.inputPath, config.paths.input);
-            const inputInfo = JSON.stringify(history.inputInfo);
-            console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendTextAsFile (InputInfo) - Length: ${inputInfo.length}`);
-            await server.manager.sendTextAsFile(socket, inputInfo, paths.inputInfo);
-            const parameters = JSON.stringify(history.parameters);
-            console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendTextAsFile (Parameters) - Length: ${parameters.length}`);
-            await server.manager.sendTextAsFile(socket, parameters, paths.parameters);
+                console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendFile (Input) - InputPath: ${history.inputPath}, FileSize: ${fs.statSync(history.inputPath).size}`);
+                await server.manager.sendFile(socket, history.inputPath, config.paths.input);
+                const inputInfo = JSON.stringify(history.inputInfo);
+                console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendTextAsFile (InputInfo) - Length: ${inputInfo.length}`);
+                await server.manager.sendTextAsFile(socket, inputInfo, paths.inputInfo);
+                const parameters = JSON.stringify(history.parameters);
+                console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendTextAsFile (Parameters) - Length: ${parameters.length}`);
+                await server.manager.sendTextAsFile(socket, parameters, paths.parameters);
 
-            socket.data.terminal = new Terminal({allowProposedApi: true});
-            socket.data.terminalSerializer = new SerializeAddon();
-            socket.data.terminal.loadAddon(socket.data.terminalSerializer);
+                socket.data.terminal = new Terminal({allowProposedApi: true});
+                socket.data.terminalSerializer = new SerializeAddon();
+                socket.data.terminal.loadAddon(socket.data.terminalSerializer);
 
-            console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendLaunchModel`);
-            server.manager.sendLaunchModel(paths.script, {cols: 181, row: 14}, [socket]);
+                console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) SendLaunchModel`);
+                server.manager.sendLaunchModel(paths.script, {cols: 181, rows: 14}, [socket]);
+            } else {
+                if (!server.manager.getHistoryMainSocket(history)) {
+                    server.manager.sendExit(1, 'The main connection is not running.', [socket]);
+                    return;
+                }
+                const executionData = socket.data.executionData;
+                console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id} Sub) CLIExecution`);
+                let model: Model;
+                try {
+                    model = await this.modelController.findByUsernameAndUniqueName(executionData.username, executionData.uniqueName);
+                } catch (e) {
+                    server.manager.sendExit(1, 'Wrong model id.', [socket]);
+                    return;
+                }
+
+                if (!(executionData.inputPath && executionData.outputPath && executionData.parametersPath)) {
+                    executionData.inputPath = model.config.paths.input;
+                    executionData.parametersPath = model.config.paths.parameters;
+                    executionData.outputPath = model.config.paths.output;
+                }
+
+                const inputPath = MulterUtils.getMulterLikeFilePath('uploads/inputs');
+                await server.manager.getFile(socket, inputPath, executionData.inputPath);
+                const rawParameters = await server.manager.getFileAsText(socket, executionData.parametersPath);
+                let parameters;
+                try {
+                    parameters = JSON.parse(rawParameters);
+                } catch (e) {
+                    server.manager.sendExit(1, 'Wrong parameters.', [socket]);
+                    return;
+                }
+                socket.data.executedHistory = await this.modelExecutionManager.executeModel(model, {
+                    executor: history.executor, inputPath, parameters, inputInfo: {
+                        fileSize: fs.statSync(inputPath).size,
+                        fileName: 'input'
+                    }, parent: history
+                });
+                console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id} Sub) ExecutedHistory: ${socket.data.executedHistory.id}, NumberOfParents: ${socket.data.executedHistory.numberOfParents}`);
+            }
         };
 
-        this.handles[SocketMessageType.FILE_WAIT] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.FILE_WAIT] = (server: DefaultSocketServer, socket: DefaultSocket, message: SocketFileWaitMessage) => {
             socket.data.readStream.pipe(socket, {end: false});
             socket.data.readStream.on('end', () => {
                 socket.data.readStream?.close?.();
             });
         };
 
-        this.handles[SocketMessageType.FILE_RECEIVE_END] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.FILE_RECEIVE_END] = (server: DefaultSocketServer, socket: DefaultSocket, message: SocketFileReceiveEndMessage) => {
             socket.data.fileSendResolver();
         };
 
-        this.handles[SocketMessageType.FILE] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.FILE] = (server: DefaultSocketServer, socket: DefaultSocket, message: SocketFileMessage) => {
             socket.data.fileSize = message.fileSize;
             if (socket.data.fileSize === 0) {
+                if (!(socket.data.writeStream instanceof streams.WritableStream)) {
+                    fs.closeSync(fs.openSync(socket.data.localSavePath, 'w'));
+                }
+                socket.data.writeStream?.destroy?.();
                 server.manager.json({msg: SocketMessageType.FILE_RECEIVE_END}, [socket]);
                 socket.data.fileReceiveResolver();
                 return;
@@ -64,11 +117,11 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             server.manager.json({msg: SocketMessageType.WAIT_RECEIVE}, [socket]);
         };
 
-        this.handles[SocketMessageType.TERMINAL] = (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.TERMINAL] = (server: DefaultSocketServer, socket: DefaultSocket, message: SocketTerminalMessage) => {
             socket.data.terminalBuffer += message.data;
             const history = socket.data.history;
 
-            if (socket.data.terminalBufferingLock) {
+            if (!socket.data.terminalBufferingLock) {
                 socket.data.terminalBufferingLock = true;
                 setTimeout(() => {
                     socket.data.terminal.write(socket.data.terminalBuffer, () => {
@@ -76,13 +129,16 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     });
                     const targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history);
                     PlatformServer.wsServer.manager.sendTerminal(socket.data.terminalBuffer, targetSockets);
+                    if (history.parent) {
+                        server.manager.sendTerminal(socket.data.terminalBuffer, [server.manager.getExecutorSocket(history)]);
+                    }
 
                     socket.data.terminalBuffer = '';
                     socket.data.terminalBufferingLock = false;
                 }, 100);
             }
 
-            if (socket.data.terminalDatabaseLock) {
+            if (!socket.data.terminalDatabaseLock) {
                 socket.data.terminalDatabaseLock = true;
                 setTimeout(async () => {
                     history.terminal = socket.data.terminalSerializer.serialize();
@@ -94,11 +150,11 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
         };
 
 
-        this.handles[SocketMessageType.PROCESS_END] = async (server: DefaultSocketServer, socket: DefaultSocket, message: any) => {
+        this.handles[SocketMessageType.PROCESS_END] = async (server: DefaultSocketServer, socket: DefaultSocket, message: SocketProcessEndMessage) => {
             const history = socket.data.history;
             console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) ProcessEnd`);
+            history.outputPath = MulterUtils.getMulterLikeFilePath('uploads/outputs');
 
-            history.outputPath = `uploads/outputs/${crypto.randomBytes(16).toString('hex')}`;
             const model = history.model;
             const image = model.image;
             const {paths} = history.model.config;
@@ -126,6 +182,11 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             // TODO: TIMING - FINISHED
             const targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history, PlatformServer.wsServer.manager.getAuthenticatedSockets());
             PlatformServer.wsServer.manager.sendUpdateHistory(history, targetSockets);
+            if (history.parent) {
+                const executorSocket = server.manager.getExecutorSocket(history);
+                await server.manager.sendFile(executorSocket, history.outputPath, executorSocket.data.executionData.outputPath);
+                await server.manager.sendExit(0);
+            }
 
             console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) ClearContainer - Container: ${history.containerId}`);
             const docker = new Dockerode(image.region);

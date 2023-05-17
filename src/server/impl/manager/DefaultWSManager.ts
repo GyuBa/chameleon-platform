@@ -2,7 +2,7 @@ import WSManager from '../../manager/WSManager';
 import {DefaultWSocket} from '../../../types/chameleon-platform';
 import {Model} from '../../../entities/Model';
 import {History} from '../../../entities/History';
-import {WSMessageType} from '../../../types/chameleon-platform.common';
+import {WSMessageType, WSTerminalMessage, WSUpdateHistoryMessage} from '../../../types/chameleon-platform.common';
 
 export default class DefaultWSManager extends WSManager {
     json(data: any, sockets: DefaultWSocket[] = this.getAllSockets()) {
@@ -34,10 +34,11 @@ export default class DefaultWSManager extends WSManager {
     }
 
     sendUpdateHistory(history: History, sockets: DefaultWSocket[] = this.getAllSockets()) {
-        this.json({msg: WSMessageType.UPDATE_HISTORY, history: history.toData()}, sockets);
+        this.json({msg: WSMessageType.UPDATE_HISTORY, history: history.toData()} as WSUpdateHistoryMessage, sockets);
     }
 
     sendTerminal(data: string, sockets: DefaultWSocket[] = this.getAllSockets()) {
-        this.json({msg: WSMessageType.TERMINAL, data}, sockets);
+        this.json({msg: WSMessageType.TERMINAL, data} as WSTerminalMessage, sockets);
     }
+
 }
