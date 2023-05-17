@@ -7,50 +7,60 @@ import {DataSource} from 'typeorm';
 import {SessionController} from '../../controller/SessionController';
 import {HistoryController} from '../../controller/HistoryController';
 import {BaseController} from '../../controller/interfaces/BaseController';
+import {ModelExecutionManager} from "../manager/ModelExecutionManager";
 
-export abstract class PlatformService {
-    private static controllers: Map<Function, BaseController<any>>;
 
-    protected get imageController(): ImageController {
+export class PlatformService {
+    private static thisService = new PlatformService();
+    private static staticMap: Map<Function, any>;
+
+    public containerCachingLock = new Map<number, boolean>();
+
+    public get imageController(): ImageController {
         return PlatformService.getController(ImageController);
     }
 
-    protected get modelController(): ModelController {
+    public get modelController(): ModelController {
         return PlatformService.getController(ModelController);
     }
 
-    protected get regionController(): RegionController {
+    public get regionController(): RegionController {
         return PlatformService.getController(RegionController);
     }
 
-    protected get sessionController(): SessionController {
+    public get sessionController(): SessionController {
         return PlatformService.getController(SessionController);
     }
 
-    protected get userController(): UserController {
+    public get userController(): UserController {
         return PlatformService.getController(UserController);
     }
 
-    protected get walletController(): WalletController {
+    public get walletController(): WalletController {
         return PlatformService.getController(WalletController);
     }
 
-    protected get historyController(): HistoryController {
+    public get historyController(): HistoryController {
         return PlatformService.getController(HistoryController);
     }
 
-    public static init(source: DataSource): void {
-        this.controllers = new Map();
-        this.controllers.set(ImageController, new ImageController(source));
-        this.controllers.set(ModelController, new ModelController(source));
-        this.controllers.set(RegionController, new RegionController(source));
-        this.controllers.set(SessionController, new SessionController(source));
-        this.controllers.set(UserController, new UserController(source));
-        this.controllers.set(WalletController, new WalletController(source));
-        this.controllers.set(HistoryController, new HistoryController(source));
+    public get modelExecutionManager(): ModelExecutionManager {
+        return PlatformService.getController(ModelExecutionManager);
     }
 
-    private static getController<T extends BaseController<any>>(controllerClass: { new(...args: any[]): T }): T {
-        return this.controllers.get(controllerClass) as T;
+    public static init(source: DataSource): void {
+        this.staticMap = new Map();
+        this.staticMap.set(ImageController, new ImageController(source));
+        this.staticMap.set(ModelController, new ModelController(source));
+        this.staticMap.set(RegionController, new RegionController(source));
+        this.staticMap.set(SessionController, new SessionController(source));
+        this.staticMap.set(UserController, new UserController(source));
+        this.staticMap.set(WalletController, new WalletController(source));
+        this.staticMap.set(HistoryController, new HistoryController(source));
+        this.staticMap.set(ModelExecutionManager, new ModelExecutionManager(this.thisService));
+    }
+
+    private static getController<T>(controllerClass: { new(...args: any[]): T }): T {
+        return this.staticMap.get(controllerClass) as T;
     }
 }
