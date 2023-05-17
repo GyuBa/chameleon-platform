@@ -14,6 +14,7 @@ export class HistoryController extends BaseController<History> {
     public static selectWithJoin(queryBuilder: SelectQueryBuilder<any>): SelectQueryBuilder<any> {
         queryBuilder = queryBuilder.leftJoinAndSelect('History.model', 'Model');
         queryBuilder = queryBuilder.leftJoinAndSelect('History.executor', 'Executor');
+        queryBuilder = queryBuilder.leftJoinAndSelect('History.parent', 'Parent');
         queryBuilder = ModelController.selectWithJoin(queryBuilder);
         return queryBuilder;
     }
