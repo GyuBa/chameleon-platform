@@ -1,9 +1,7 @@
 import * as express from 'express';
 import {Application, Request, Response} from 'express';
 import * as Dockerode from 'dockerode';
-import {Container} from 'dockerode';
 import {Region} from '../../entities/Region';
-import {History} from '../../entities/History';
 import {Image} from '../../entities/Image';
 import {Model} from '../../entities/Model';
 import {HTTPService} from '../interfaces/http/HTTPService';
@@ -11,12 +9,11 @@ import {Server} from 'http';
 import {DockerUtils} from '../../utils/DockerUtils';
 import * as multer from 'multer';
 import {MulterUtils} from '../../utils/MulterUtils';
-import PlatformServer from '../../server/core/PlatformServer';
 import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 import {HistoryStatus, ResponseData} from '../../types/chameleon-platform.common';
 import * as fs from 'fs';
-import {DateUtils} from "../../utils/DateUtils";
+import {DateUtils} from '../../utils/DateUtils';
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -37,7 +34,6 @@ const dockerfiles = multer({
 });
 
 export class ModelService extends HTTPService {
-    private containerCachingLock = new Map<number, boolean>();
 
     init(app: Application, server: Server) {
         const router = express.Router();
@@ -57,7 +53,7 @@ export class ModelService extends HTTPService {
         const {parameters: rawParameters, modelId} = req.body;
         if (!(rawParameters && modelId && req.file)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
         const parameters = JSON.parse(rawParameters);
-        const user: User = req.user as User;
+        const executor: User = req.user as User;
         const model: Model = await this.modelController.findById(modelId);
 
         if (!model) return res.status(401).send({
@@ -65,58 +61,15 @@ export class ModelService extends HTTPService {
             reason: 'Model does not exist.'
         } as ResponseData);
 
-        setTimeout(async _ => {
-            const image = model.image;
-            const region = model.image.region;
-            const docker = new Dockerode(region);
-            const file = req.file;
-
-            let history: History;
-            let container: Container;
-
-            const cachedHistory = await this.historyController.findAndUseCache(image);
-            if (cachedHistory) {
-                console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) Found cached containers`));
-                history = cachedHistory;
-                container = await docker.getContainer(history.containerId);
-                await container.restart();
-            } else {
-                console.log((`[${DateUtils.getConsoleTime()} | HTTP, ${req.ip}] (Model: ${model.name}) No cached containers`));
-                const {
-                    history: newHistory,
-                    container: newContainer
-                } = await this.createCachedContainer(docker, model, true);
-                history = newHistory;
-                container = newContainer;
-            }
-
-            history.startedTime = new Date();
-            history.executor = user;
-            history.status = HistoryStatus.INITIALIZING;
-            history.inputPath = file.path.replace(/\\/g, '/');
-            history.inputInfo = {fileName: file.originalname, fileSize: file.size, mimeType: file.mimetype};
-            history.parameters = parameters;
-            await this.historyController.save(history);
-            // TODO: TIMING - INITIALIZING
-            let targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history, PlatformServer.wsServer.manager.getAuthenticatedSockets());
-            PlatformServer.wsServer.manager.sendUpdateHistory(history, targetSockets);
-            // PlatformServer.wsServer.manager.
-            // targetSockets
-
-            setTimeout(() => this.createCachedContainers(docker, model));
-            const {paths} = history.model.config;
-            const port = PlatformServer.config.socketExternalPort ? PlatformServer.config.socketExternalPort : PlatformServer.config.socketPort;
-
-            setTimeout(() =>
-                DockerUtils.exec(container, `chmod 777 "${paths.controllerDirectory}/controller" && "${paths.controllerDirectory}/controller" ${PlatformServer.config.socketExternalHost} ${port} ${history.id} >> ${paths.debugLog} 2>&1`)
-            );
-
-            history.status = HistoryStatus.RUNNING;
-            history.startedTime = new Date();
-            await this.historyController.save(history);
-            // TODO: TIMING - RUNNING
-            targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history, PlatformServer.wsServer.manager.getAuthenticatedSockets());
-            PlatformServer.wsServer.manager.sendUpdateHistory(history, targetSockets);
+        const file = req.file;
+        setTimeout(async () => {
+            await this.modelExecutionManager.executeModel(model, {
+                parameters, executor, inputPath: file.path, inputInfo: {
+                    fileName: file.originalname,
+                    mimeType: file.mimetype,
+                    fileSize: file.size
+                }
+            });
         });
 
         return res.status(200).send({msg: 'ok'});
@@ -257,54 +210,6 @@ export class ModelService extends HTTPService {
         }
     }
 
-    async addControllerToContainer(container: Container, model: Model) {
-        const config = model.config;
-        const {paths} = config;
-
-        const excludePaths = [paths.script, paths.controllerDirectory, '/dev/null'];
-        const clearPaths = Object.values(paths).filter(p => !excludePaths.includes(p)).sort();
-        const initCommand = [`mkdir -p ${paths.controllerDirectory}`, ...clearPaths.map(p => `rm -rf "${p}" && mkdir -p $(dirname "${p}")`)].join(' && ');
-        await DockerUtils.exec(container, initCommand);
-
-        const dependencies = container.putArchive(PlatformServer.config.dependenciesPath, {path: '/'});
-        const controller = container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerDirectory});
-        await Promise.all([dependencies, controller]);
-    }
-
-    async createCachedContainer(docker: Dockerode, model: Model, keepRunning?: boolean) {
-        const container = await docker.createContainer({
-            Image: model.image.uniqueId,
-            Tty: true
-        });
-        const history = new History();
-        history.containerId = container.id;
-        history.status = HistoryStatus.CACHED;
-        history.model = model;
-        history.inputType = model.inputType;
-        history.outputType = model.outputType;
-
-        await container.start();
-        await this.addControllerToContainer(container, model);
-        if (!keepRunning) {
-            await container.stop();
-        }
-        await this.historyController.save(history);
-        return {history, container};
-    }
-
-    async createCachedContainers(docker: Dockerode, model: Model) {
-        if (!this.containerCachingLock.get(model.id)) {
-            this.containerCachingLock.set(model.id, true);
-            const cachedSize = (await this.historyController.findAllByImageAndStatus(model.image, HistoryStatus.CACHED)).length;
-            const generateSize = model.cacheSize - cachedSize;
-            console.log(`[${model.name}] Start creating ${generateSize} cached containers`);
-            const tasks = Array.from({length: model.cacheSize - cachedSize}, () => this.createCachedContainer(docker, model));
-            await Promise.all(tasks);
-            console.log(`[${model.name}] End creating ${generateSize} cached containers`);
-            this.containerCachingLock.set(model.id, false);
-        }
-    }
-
     async handleUpload(req: Request, res: Response, next: Function) {
         const {regionName, modelName, description, inputType, outputType, parameters} = req.body;
         if (!(regionName && modelName && description && inputType && outputType && (req.files || req.file) && parameters)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
@@ -377,7 +282,7 @@ export class ModelService extends HTTPService {
         model.uniqueName = imageTag;
         await this.modelController.save(model);
 
-        setTimeout(() => this.createCachedContainers(docker, model));
+        setTimeout(() => this.modelExecutionManager.createCachedContainers(docker, model));
         return res.status(200).send({msg: 'ok'} as ResponseData);
     }
 }
