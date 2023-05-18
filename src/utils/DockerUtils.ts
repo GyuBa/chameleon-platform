@@ -31,19 +31,36 @@ export class DockerUtils {
     static async loadImage(docker: Dockerode, path: string, tagOptions) {
         await new Promise((resolve, reject) => {
             let importedIdentifier;
+            let buffer = '';
+            let loadEvent;
+            const handleEvent = async () => {
+                const image = await docker.getImage(loadEvent.id);
+                await image.tag(tagOptions);
+                const originalTagImage = await docker.getImage(importedIdentifier);
+                try {
+                    await originalTagImage.remove();
+                } catch (e) {
+                    /* Empty */
+                }
+                resolve(image);
+            };
+
             docker.getEvents(function (error, eventStream) {
                 eventStream.on('data', async (data) => {
-                    const event = JSON.parse(data.toString());
-                    if (event.Type === 'image' && event.Action === 'load') {
-                        const image = await docker.getImage(event.id);
-                        await image.tag(tagOptions);
-                        const originalTagImage = await docker.getImage(importedIdentifier);
-                        await originalTagImage.remove();
-
+                    let event;
+                    try {
+                        event = JSON.parse(buffer + data.toString());
+                        buffer = '';
+                    } catch (e) {
+                        buffer += data.toString();
+                    }
+                    if (!loadEvent && event && event.Type === 'image' && event.Action === 'load') {
+                        loadEvent = event;
                         eventStream.removeAllListeners();
                         eventStream.unpipe();
-
-                        resolve(image);
+                        if (importedIdentifier) {
+                            await handleEvent();
+                        }
                     }
                 });
             });
@@ -52,11 +69,14 @@ export class DockerUtils {
                 if (error) {
                     return reject(error);
                 }
-                docker.modem.followProgress(stream, (err, res) => {
+                docker.modem.followProgress(stream, async (err, res) => {
                     if (err) {
                         return reject(err);
                     }
                     importedIdentifier = res[0].stream.split(':').slice(1).join(':').trim();
+                    if (loadEvent) {
+                        await handleEvent();
+                    }
                 });
             });
         });
