@@ -18,7 +18,7 @@ export class Common {
     }
 
     toData() {
-        return this.dataKeys.reduce((obj, key) => this[key] ? {
+        return this.dataKeys.reduce((obj, key) => this[key] !== undefined ? {
             ...obj,
             [key]: this[key]?.toData ? this[key].toData() : this[key]
         } : obj, {});
