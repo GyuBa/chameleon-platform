@@ -272,7 +272,7 @@ export class ModelService extends HTTPService {
         image.region = region;
 
         const model: Model = new Model();
-        if (!Number.isNaN(rawPrice)) {
+        if (rawPrice && !Number.isNaN(rawPrice)) {
             model.price = parseInt(rawPrice);
             model.price = model.price < 0 ? 0 : model.price;
         }
