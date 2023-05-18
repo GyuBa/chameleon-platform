@@ -28,10 +28,10 @@ export class Model extends Common {
     @Column()
         cacheSize: number;
 
-    @Column({enum: ModelInputType})
+    @Column({type: 'enum', enum: ModelInputType})
         inputType: ModelInputType;
 
-    @Column({enum: ModelOutputType})
+    @Column({type: 'enum', enum: ModelOutputType})
         outputType: ModelOutputType;
 
     @Column({type: 'json'})
