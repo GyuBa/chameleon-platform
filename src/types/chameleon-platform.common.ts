@@ -76,7 +76,7 @@ export interface ModelEntityData {
     parameters: ModelParameters;
     config: ModelConfig;
     category: string;
-    point: number;
+    price: number;
 }
 
 export const Model: Array<keyof ModelEntityData> = [
@@ -94,7 +94,7 @@ export const Model: Array<keyof ModelEntityData> = [
     'parameters',
     'config',
     'category',
-    'point'
+    'price'
 ];
 
 
@@ -275,6 +275,7 @@ export type ModelCommonUploadData = {
     regionName: string;
     parameters: ModelParameters;
     description: string
+    category?: string;
     price?: number;
 }
 export type ModelImageUploadData = ModelCommonUploadData & { file: File }
