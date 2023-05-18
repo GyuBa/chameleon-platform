@@ -6,7 +6,7 @@
    "scripts": {
       "test": "jest",
       "start": "nodemon",
-      "init": "jest src/__tests__/Initialize.test.ts",
+      "init": "jest src/__tests__/Initialize.test.ts —detectOpenHandles —forceExit",
       "typeorm": "typeorm-ts-node-commonjs"
    },
    "keywords": [],
