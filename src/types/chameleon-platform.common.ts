@@ -155,7 +155,7 @@ export enum HistoryStatus {
 }
 
 export enum ModelInputType {
-    NONE = 'none',
+    EMPTY = 'empty',
     IMAGE = 'image',
     VIDEO = 'video',
     SOUND = 'sound',
@@ -168,7 +168,9 @@ export enum ModelOutputType {
     IMAGE = 'image',
     VIDEO = 'video',
     SOUND = 'sound',
-    TEXT = 'text'
+    TEXT = 'text',
+    ZIP = 'zip',
+    BINARY = 'binary'
 }
 
 export enum WSMessageType {
@@ -268,11 +270,12 @@ export enum SocketReceiveMode {
 /* Upload Parameters */
 export type ModelCommonUploadData = {
     modelName: string;
-    inputType: string;
-    outputType: string;
+    inputType: ModelInputType;
+    outputType: ModelOutputType;
     regionName: string;
-    parameters: string;
+    parameters: ModelParameters;
     description: string
+    price?: number;
 }
 export type ModelImageUploadData = ModelCommonUploadData & { file: File }
 
