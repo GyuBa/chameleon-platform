@@ -61,6 +61,15 @@ export class ModelService extends HTTPService {
             reason: 'Model does not exist.'
         } as ResponseData);
 
+        if (executor.point - model.price < 0) {
+            return res.status(401).send({
+                msg: 'wrong_permission_error',
+                reason: 'Not enough points to use.'
+            } as ResponseData);
+        }
+        executor.point -= model.price;
+        await this.userController.save(executor);
+
         const file = req.file;
         setTimeout(async () => {
             await this.modelExecutionManager.executeModel(model, {
@@ -211,7 +220,16 @@ export class ModelService extends HTTPService {
     }
 
     async handleUpload(req: Request, res: Response, next: Function) {
-        const {regionName, modelName, description, inputType, outputType, parameters} = req.body;
+        const {
+            regionName,
+            modelName,
+            description,
+            inputType,
+            outputType,
+            parameters,
+            price: rawPrice,
+            category: rawCategory
+        } = req.body;
         if (!(regionName && modelName && description && inputType && outputType && (req.files || req.file) && parameters)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
         if (!(req.isAuthenticated())) return res.status(501).send({msg: 'not_authenticated_error'} as ResponseData);
 
@@ -254,6 +272,13 @@ export class ModelService extends HTTPService {
         image.region = region;
 
         const model: Model = new Model();
+        if (!Number.isNaN(rawPrice)) {
+            model.price = parseInt(rawPrice);
+            model.price = model.price < 0 ? 0 : model.price;
+        }
+        if (rawCategory) {
+            model.category = rawCategory;
+        }
         model.name = modelName;
         model.description = description;
         model.inputType = inputType;

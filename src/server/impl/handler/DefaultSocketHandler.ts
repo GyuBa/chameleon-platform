@@ -8,14 +8,14 @@ import * as fs from 'fs';
 import * as Dockerode from 'dockerode';
 import PlatformServer from '../../core/PlatformServer';
 import {
-    HistoryStatus, SocketFileMessage, SocketFileReceiveEndMessage, SocketFileWaitMessage,
+    HistoryStatus, ResponseData, SocketFileMessage, SocketFileReceiveEndMessage, SocketFileWaitMessage,
     SocketLaunchMessage,
     SocketMessageType, SocketProcessEndMessage,
     SocketReceiveMode, SocketTerminalMessage
 } from '../../../types/chameleon-platform.common';
 import {DateUtils} from '../../../utils/DateUtils';
-import {MulterUtils} from "../../../utils/MulterUtils";
-import {Model} from "../../../entities/Model";
+import {MulterUtils} from '../../../utils/MulterUtils';
+import {Model} from '../../../entities/Model';
 
 export default class DefaultSocketHandler extends PlatformService implements SocketHandler<DefaultSocketServer, DefaultSocket> {
     readonly handles: { [messageType: string]: SocketHandle } = {};
@@ -80,6 +80,12 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     server.manager.sendExit(1, 'Wrong parameters.', [socket]);
                     return;
                 }
+                if (history.executor.point - model.price < 0) {
+                    server.manager.sendExit(1, 'Not enough points to use.', [socket]);
+                }
+                history.executor.point -= model.price;
+                await this.userController.save(history.executor);
+
                 socket.data.executedHistory = await this.modelExecutionManager.executeModel(model, {
                     executor: history.executor, inputPath, parameters, inputInfo: {
                         fileSize: fs.statSync(inputPath).size,
