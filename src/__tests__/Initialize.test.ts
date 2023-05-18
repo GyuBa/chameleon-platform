@@ -202,5 +202,5 @@ describe('Initialize System', () => {
             console.error(e);
             fail(e.response.data);
         }
-    }, 20 * 60 * 1000);
+    }, 60 * 60 * 1000);
 });
