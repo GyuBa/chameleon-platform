@@ -2,6 +2,7 @@ import {TestingManager} from './common/TestingManager';
 import {LoginUtils} from './common/LoginUtils';
 import * as fs from 'fs';
 import {PlatformAPI} from '../platform/PlatformAPI';
+import {ModelInputType, ModelOutputType} from "../types/chameleon-platform.common";
 
 function sleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -21,9 +22,9 @@ describe('Upload model', () => {
                 regionName: 'mongle',
                 modelName,
                 description: '# test model description',
-                inputType: 'image',
-                outputType: 'image',
-                parameters: JSON.stringify({uischema: {}, schema: {}}),
+                inputType: ModelInputType.IMAGE,
+                outputType: ModelOutputType.IMAGE,
+                parameters: {uischema: {}, schema: {}},
                 file: fs.createReadStream('test.tar') as any
                 // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
             });
@@ -39,9 +40,9 @@ describe('Upload model', () => {
                 regionName: 'mongle',
                 modelName,
                 description: '# test model description',
-                inputType: 'image',
-                outputType: 'image',
-                parameters: JSON.stringify({uischema: {}, schema: {}}),
+                inputType: ModelInputType.IMAGE,
+                outputType: ModelOutputType.IMAGE,
+                parameters: {uischema: {}, schema: {}},
                 files: [fs.createReadStream('Dockerfile') as any]
                 // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
             });
