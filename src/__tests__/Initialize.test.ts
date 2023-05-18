@@ -106,7 +106,9 @@ describe('Initialize System', () => {
                 parameters: {uischema: {}, schema: {}},
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
                     responseType: 'stream'
-                })).data
+                })).data,
+                category: 'Image Upscaling',
+                price: 0
             });
 
             await PlatformAPI.signIn('test2@test.com', 'test');
@@ -119,20 +121,24 @@ describe('Initialize System', () => {
                 parameters: {uischema: {}, schema: {}},
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-text.tar', {
                     responseType: 'stream'
-                })).data
+                })).data,
+                category: 'NLP',
+                price: 0
             });
 
             await PlatformAPI.signIn('test3@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
                 modelName: 'Sound Output Model',
-                description: '# Sound Output Model \n\n 간단한 형식으로 텍스트를 출력하는 모델입니다.',
+                description: '# Sound Output Model \n\n 간단한 형식으로 사운드를 출력하는 모델입니다.',
                 inputType: ModelInputType.SOUND,
                 outputType: ModelOutputType.SOUND,
                 parameters: {uischema: {}, schema: {}},
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-sound.tar', {
                     responseType: 'stream'
-                })).data
+                })).data,
+                category: 'Voice Recognition',
+                price: 0
             });
 
             await PlatformAPI.signIn('test4@test.com', 'test');
@@ -145,7 +151,9 @@ describe('Initialize System', () => {
                 parameters: {uischema: {}, schema: {}},
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-video.tar', {
                     responseType: 'stream'
-                })).data
+                })).data,
+                category: 'Object Detection',
+                price: 0
             });
 
             await PlatformAPI.signIn('test5@test.com', 'test');
@@ -175,6 +183,7 @@ describe('Initialize System', () => {
                 })).data
             });
 
+            await PlatformAPI.signIn('test@test.com', 'test');
             for (let i = 1; i <= 30; i++) {
                 await PlatformAPI.uploadModelWithImage({
                     regionName: 'mongle',
@@ -185,7 +194,8 @@ describe('Initialize System', () => {
                     parameters: {uischema: {}, schema: {}},
                     file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
                         responseType: 'stream'
-                    })).data
+                    })).data,
+                    price: Math.floor(Math.random() * 1000 + 100)
                 });
             }
         } catch (e) {
