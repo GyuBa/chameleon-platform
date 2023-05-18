@@ -36,11 +36,20 @@ export class PlatformAPI {
 
     public static toFormData(data: any): FormData {
         const formData = new FormData();
-        Object.entries(data).forEach(([name, value]: [string, any]) =>
-            Array.isArray(value) ? value.forEach(v => formData.append(name, v)) : formData.append(name, value)
-        );
+        Object.entries(data).forEach(([name, value]: [string, any]) => {
+            if (Array.isArray(value)) {
+                value.forEach(v => formData.append(name, v));
+            } else {
+                if (typeof value !== 'string' && !(value instanceof Blob)) {
+                    formData.append(name, JSON.stringify(value));
+                } else {
+                    formData.append(name, value);
+                }
+            }
+        });
         return formData;
     }
+
 
     public static async uploadModelWithImage(uploadData: ModelImageUploadData): Promise<ResponseData> {
         const response = await this.instance.post('/models/upload-image', this.toFormData(uploadData), this.uploadConfig);
