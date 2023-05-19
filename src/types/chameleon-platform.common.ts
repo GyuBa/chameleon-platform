@@ -176,10 +176,10 @@ export enum ModelOutputType {
 export enum ModelSearchOption {
     NAME = 'Name',
     DESCRIPTION = 'Description',
-    NAME_AND_DESCRIPTION = 'NameAndDescription',
+    NAME_AND_DESCRIPTION = 'Name & Description',
     CATEGORY = 'Category',
-    INPUT_TYPE = 'InputType',
-    OUTPUT_TYPE = 'OutputType',
+    INPUT_TYPE = 'Input Type',
+    OUTPUT_TYPE = 'Output Type',
     REGISTER = 'Register'
 }
 
