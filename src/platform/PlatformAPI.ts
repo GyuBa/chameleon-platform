@@ -107,6 +107,12 @@ export class PlatformAPI {
         return response?.data;
     }
 
+    public static async getHistory(historyId: number): Promise<HistoryEntityData> {
+        const response = await this.instance.get(`/histories/${historyId}`, {...this.defaultConfig});
+        this.restoreTimeProperty(response?.data);
+        return response?.data as HistoryEntityData;
+    }
+
     public static async getHistories(options?: ModelsRequestOptions): Promise<HistoryEntityData[]> {
         const response = await this.instance.get('/histories', {...this.defaultConfig, params: options});
         this.restoreTimeProperty(response?.data);
