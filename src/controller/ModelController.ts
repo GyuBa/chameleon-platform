@@ -3,6 +3,7 @@ import {Image} from '../entities/Image';
 import {BaseController} from './interfaces/BaseController';
 import {DataSource, SelectQueryBuilder} from 'typeorm';
 import {ImageController} from './ImageController';
+import {ModelSearchOption} from "../types/chameleon-platform.common";
 
 export class ModelController extends BaseController<Model> {
     constructor(source: DataSource) {
@@ -73,6 +74,52 @@ export class ModelController extends BaseController<Model> {
                 .select()
                 .where('Register.id=:userId', {userId})
                 .getMany();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
+    async findBySearchOption(option: ModelSearchOption, searchTerm: string, ownOnly?: boolean, userId?: number): Promise<Model[]> {
+        try {
+
+            let queryBuilder = ModelController.selectWithJoin(this.repository.createQueryBuilder())
+                .select();
+            if (ownOnly && userId) {
+                queryBuilder = queryBuilder.where('Register.id=:userId', {userId});
+            }
+            if (option && searchTerm) {
+                switch (option) {
+                case ModelSearchOption.NAME:
+                    searchTerm = `%${searchTerm}%`;
+                    queryBuilder = queryBuilder.andWhere('Model.name LIKE :searchTerm', {searchTerm});
+                    break;
+                case ModelSearchOption.DESCRIPTION:
+                    searchTerm = `%${searchTerm}%`;
+                    queryBuilder = queryBuilder.andWhere('Model.description LIKE :searchTerm', {searchTerm});
+                    break;
+                case ModelSearchOption.NAME_AND_DESCRIPTION:
+                    searchTerm = `%${searchTerm}%`;
+                    queryBuilder = queryBuilder.andWhere('(Model.name LIKE :searchTerm OR Model.description LIKE :searchTerm)', {searchTerm});
+                    break;
+                case ModelSearchOption.CATEGORY:
+                    searchTerm = `%${searchTerm}%`;
+                    queryBuilder = queryBuilder.andWhere('Model.category LIKE :searchTerm', {searchTerm});
+                    break;
+                case ModelSearchOption.INPUT_TYPE:
+                    queryBuilder = queryBuilder.andWhere('Model.inputType=:searchTerm', {searchTerm});
+                    break;
+                case ModelSearchOption.OUTPUT_TYPE:
+                    queryBuilder = queryBuilder.andWhere('Model.outputType=:searchTerm', {searchTerm});
+                    break;
+                case ModelSearchOption.REGISTER:
+                    queryBuilder = queryBuilder.andWhere('Register.username=:searchTerm', {searchTerm});
+                    break;
+                default:
+                    break;
+                }
+            }
+            return await queryBuilder.getMany();
         } catch (e) {
             console.error(e);
             throw e;

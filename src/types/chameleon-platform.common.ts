@@ -173,6 +173,16 @@ export enum ModelOutputType {
     BINARY = 'binary'
 }
 
+export enum ModelSearchOption {
+    NAME = 'Name',
+    DESCRIPTION = 'Description',
+    NAME_AND_DESCRIPTION = 'NameAndDescription',
+    CATEGORY = 'Category',
+    INPUT_TYPE = 'InputType',
+    OUTPUT_TYPE = 'OutputType',
+    REGISTER = 'Register'
+}
+
 export enum WSMessageType {
     READY = 'Ready',
     PATH = 'Path',
@@ -289,7 +299,9 @@ export type ModelExecuteData = {
 }
 
 export type ModelsRequestOptions = {
-    ownOnly?: boolean
+    ownOnly?: boolean;
+    searchTerm?: string | ModelInputType | ModelOutputType;
+    searchOption?: ModelSearchOption;
 }
 
 export type HistoriesRequestOptions = {

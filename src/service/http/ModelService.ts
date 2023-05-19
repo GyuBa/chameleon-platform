@@ -11,7 +11,7 @@ import * as multer from 'multer';
 import {MulterUtils} from '../../utils/MulterUtils';
 import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
-import {HistoryStatus, ResponseData} from '../../types/chameleon-platform.common';
+import {HistoryStatus, ModelSearchOption, ResponseData} from '../../types/chameleon-platform.common';
 import * as fs from 'fs';
 import {DateUtils} from '../../utils/DateUtils';
 
@@ -87,8 +87,10 @@ export class ModelService extends HTTPService {
     async handleGetModels(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         const ownOnly = req.query.ownOnly === 'true';
+        const searchOption: ModelSearchOption = req.query.searchOption as ModelSearchOption;
+        const searchTerm: string = req.query.searchTerm as string;
         const user = req.user as User;
-        const responseData = (ownOnly ? await this.modelController.findAllByUserId(user.id) : await this.modelController.getAll()).map(m => m.toData());
+        const responseData = (await this.modelController.findBySearchOption(searchOption, searchTerm, ownOnly, user.id)).map(m => m.toData());
         return res.status(200).send(responseData);
     }
 

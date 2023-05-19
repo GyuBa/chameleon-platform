@@ -2,12 +2,6 @@ import {TestingManager} from './common/TestingManager';
 import {PlatformAPI} from "../platform/PlatformAPI";
 import {LoginUtils} from "./common/LoginUtils";
 
-const testAccount = {
-    'email': `test@test.com`,
-    'password': 'test',
-    'username': 'test'
-};
-
 describe('Login', () => {
     beforeAll(async () => {
         await TestingManager.init();
