@@ -304,10 +304,6 @@ export type ModelsRequestOptions = {
     searchOption?: ModelSearchOption;
 }
 
-export type HistoriesRequestOptions = {
-    ownOnly?: boolean
-}
-
 /* Etc Types */
 export type ResponseData = {
     msg: 'ok' |
