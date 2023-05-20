@@ -335,6 +335,7 @@ export type ModelOutputInfo = {
 export type ModelParameters = {
     uischema: any;
     schema: any;
+    data: any;
 }
 
 export type ModelConfig = {
@@ -367,4 +368,23 @@ export type ExecutionData = {
     inputPath?: string;
     parametersPath?: string;
     outputPath?: string;
+}
+
+export const SitePaths = {
+    ROOT: '/',
+    PAYMENT: '/payment',
+    MODEL: (username: string, uniqueName: string) => `/model/${username}/${uniqueName}`,
+    MODELS: '/models',
+    ALL_MODELS: '/models/all',
+    MY_MODELS: '/models/my',
+    CREATE_MODEL: '/models/create',
+    CREATE_MODEL_INFO: '/models/create/info',
+    CREATE_MODEL_DESCRIPTION: '/models/create/description',
+    CREATE_MODEL_PARAMETERS: '/models/create/parameters',
+    HISTORY: (historyId: number | string) => `/history/${Number.isInteger(historyId) ? (historyId as number + 1) : historyId}`,
+    HISTORIES: '/histories',
+    ACCOUNT: '/account',
+    SIGN_IN: '/sign-in',
+    SIGN_UP: '/sign-up',
+    CHANGE_PASSWORD: '/change-password'
 }

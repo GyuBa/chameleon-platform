@@ -19,12 +19,24 @@ export class HistoryController extends BaseController<History> {
         return queryBuilder;
     }
 
+
     async findById(id: number): Promise<History> {
         try {
             return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
                 .where('History.id=:id', {id})
                 .getOne();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
+    async getAll(): Promise<History[]> {
+        try {
+            return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
+                .select()
+                .getMany();
         } catch (e) {
             console.error(e);
             throw e;

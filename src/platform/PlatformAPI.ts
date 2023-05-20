@@ -72,8 +72,8 @@ export class PlatformAPI {
         return response?.data as ModelEntityData[];
     }
 
-    public static async getMyModels(): Promise<ModelEntityData[]> {
-        return await this.getModels({ownOnly: true});
+    public static async getMyModels(options?: ModelsRequestOptions): Promise<ModelEntityData[]> {
+        return await this.getModels({...options, ownOnly: true});
     }
 
     public static async getLoginUser(): Promise<UserEntityData> {
@@ -113,14 +113,10 @@ export class PlatformAPI {
         return response?.data as HistoryEntityData;
     }
 
-    public static async getHistories(options?: ModelsRequestOptions): Promise<HistoryEntityData[]> {
-        const response = await this.instance.get('/histories', {...this.defaultConfig, params: options});
+    public static async getHistories(): Promise<HistoryEntityData[]> {
+        const response = await this.instance.get('/histories', {...this.defaultConfig});
         this.restoreTimeProperty(response?.data);
         return response?.data as HistoryEntityData[];
-    }
-
-    public static async getMyHistories(options?: ModelsRequestOptions): Promise<HistoryEntityData[]> {
-        return await this.getHistories({ownOnly: true});
     }
 
     public static async modifyPassword(newPassword: string): Promise<ResponseData> {
