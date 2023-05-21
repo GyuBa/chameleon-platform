@@ -33,6 +33,7 @@ export class ModelExecutionManager extends ServiceManager {
             container = newContainer;
         }
 
+        history.modelPrice = model.price;
         history.startedTime = new Date();
         history.executor = executionOptions.executor;
         history.status = HistoryStatus.INITIALIZING;

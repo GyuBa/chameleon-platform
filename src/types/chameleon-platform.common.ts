@@ -14,6 +14,7 @@ export interface HistoryEntityData {
     executor: UserEntityData;
     parent: HistoryEntityData;
     numberOfParents: number;
+    modelPrice: number;
     model: ModelEntityData;
     startedTime: Date;
     endedTime: Date;
@@ -36,6 +37,7 @@ export const History: Array<keyof HistoryEntityData> = [
     'executor',
     'parent',
     'numberOfParents',
+    'modelPrice',
     'model',
     'startedTime',
     'endedTime',
@@ -304,6 +306,10 @@ export type ModelsRequestOptions = {
     searchOption?: ModelSearchOption;
 }
 
+export type HistoriesRequestOptions = {
+    paidOnly?: boolean;
+}
+
 /* Etc Types */
 export type ResponseData = {
     msg: 'ok' |
@@ -387,4 +393,4 @@ export const SitePaths = {
     SIGN_IN: '/sign-in',
     SIGN_UP: '/sign-up',
     CHANGE_PASSWORD: '/change-password'
-}
+};

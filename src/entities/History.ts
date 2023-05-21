@@ -46,6 +46,8 @@ export class History extends Common {
 
     @Column({default: 0})
         numberOfParents: number;
+    @Column({default: 0})
+        modelPrice: number;
 
     @ManyToOne(
         () => Model,

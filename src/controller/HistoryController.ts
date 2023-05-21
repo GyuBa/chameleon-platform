@@ -55,6 +55,19 @@ export class HistoryController extends BaseController<History> {
         }
     }
 
+    async findPaidAllByExecutorId(executorId: number): Promise<History[]> {
+        try {
+            return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
+                .select()
+                .where('Executor.id=:executorId', {executorId})
+                .where('History.price > 0')
+                .getMany();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     async findAllByModelId(modelId: number): Promise<History[]> {
         try {
             return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
