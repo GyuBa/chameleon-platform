@@ -6,8 +6,8 @@ import {RegionController} from '../../controller/RegionController';
 import {DataSource} from 'typeorm';
 import {SessionController} from '../../controller/SessionController';
 import {HistoryController} from '../../controller/HistoryController';
-import {BaseController} from '../../controller/interfaces/BaseController';
 import {ModelExecutionManager} from "../manager/ModelExecutionManager";
+import {PointHistoryController} from "../../controller/PointHistoryController";
 
 
 export class PlatformService {
@@ -44,6 +44,10 @@ export class PlatformService {
         return PlatformService.getController(HistoryController);
     }
 
+    public get pointHistoryController(): PointHistoryController {
+        return PlatformService.getController(PointHistoryController);
+    }
+
     public get modelExecutionManager(): ModelExecutionManager {
         return PlatformService.getController(ModelExecutionManager);
     }
@@ -57,6 +61,7 @@ export class PlatformService {
         this.staticMap.set(UserController, new UserController(source));
         this.staticMap.set(WalletController, new WalletController(source));
         this.staticMap.set(HistoryController, new HistoryController(source));
+        this.staticMap.set(PointHistoryController, new PointHistoryController(source));
         this.staticMap.set(ModelExecutionManager, new ModelExecutionManager(this.thisService));
     }
 

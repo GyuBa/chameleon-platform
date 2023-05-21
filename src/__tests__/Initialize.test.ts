@@ -16,7 +16,12 @@ mainRegion.name = initConfig.mainRegion.name;
 mainRegion.host = initConfig.mainRegion.host;
 mainRegion.port = initConfig.mainRegion.port;
 mainRegion.cacheSize = initConfig.mainRegion.cacheSize;
-
+const exampleParameters = {
+    'uischema': {
+        'type': 'VerticalLayout',
+        'elements': [{'type': 'Control', 'scope': '#/properties/name'}]
+    }, 'schema': {'type': 'object', 'properties': {'name': {'type': 'string'}}}, 'data': {}
+};
 describe('Initialize System', () => {
     beforeAll(async () => {
         await TestingManager.init();
@@ -103,7 +108,7 @@ describe('Initialize System', () => {
                 description: '# Image Output Model \n\n 간단한 형식으로 이미지를 출력하는 모델입니다.',
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.IMAGE,
-                parameters: {uischema: {}, schema: {}},
+                parameters: exampleParameters,
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
                     responseType: 'stream'
                 })).data,
@@ -118,7 +123,7 @@ describe('Initialize System', () => {
                 description: '# Text Output Model \n\n 간단한 형식으로 텍스트를 출력하는 모델입니다.',
                 inputType: ModelInputType.TEXT,
                 outputType: ModelOutputType.TEXT,
-                parameters: {uischema: {}, schema: {}},
+                parameters: {uischema: {}, schema: {}, data: {}},
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-text.tar', {
                     responseType: 'stream'
                 })).data,
@@ -133,7 +138,7 @@ describe('Initialize System', () => {
                 description: '# Sound Output Model \n\n 간단한 형식으로 사운드를 출력하는 모델입니다.',
                 inputType: ModelInputType.SOUND,
                 outputType: ModelOutputType.SOUND,
-                parameters: {uischema: {}, schema: {}},
+                parameters: {uischema: {}, schema: {}, data: {}},
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-sound.tar', {
                     responseType: 'stream'
                 })).data,
@@ -148,7 +153,7 @@ describe('Initialize System', () => {
                 description: '# Video Output Model \n\n 간단한 형식으로 비디오를 출력하는 모델입니다.',
                 inputType: ModelInputType.VIDEO,
                 outputType: ModelOutputType.VIDEO,
-                parameters: {uischema: {}, schema: {}},
+                parameters: exampleParameters,
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-video.tar', {
                     responseType: 'stream'
                 })).data,
@@ -163,7 +168,7 @@ describe('Initialize System', () => {
                 description: '# Empty Model \n\n 빈 입력을 받는 모델입니다.',
                 inputType: ModelInputType.EMPTY,
                 outputType: ModelOutputType.BINARY,
-                parameters: {uischema: {}, schema: {}},
+                parameters: exampleParameters,
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
                     responseType: 'stream'
                 })).data
@@ -177,7 +182,7 @@ describe('Initialize System', () => {
                 description: '# Empty Model \n\n 여러개의 파일을 받는 모델입니다.',
                 inputType: ModelInputType.ZIP,
                 outputType: ModelOutputType.BINARY,
-                parameters: {uischema: {}, schema: {}},
+                parameters: exampleParameters,
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
                     responseType: 'stream'
                 })).data
@@ -191,7 +196,7 @@ describe('Initialize System', () => {
                     description: `# 테스트 ${i} \n\n 테스트용 모델입니다.`,
                     inputType: ModelInputType.IMAGE,
                     outputType: ModelOutputType.IMAGE,
-                    parameters: {uischema: {}, schema: {}},
+                    parameters: exampleParameters,
                     file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
                         responseType: 'stream'
                     })).data,

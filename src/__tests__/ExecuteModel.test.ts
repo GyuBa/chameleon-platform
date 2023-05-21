@@ -10,6 +10,12 @@ function sleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
 }
 
+const exampleParameters = {
+    'uischema': {
+        'type': 'VerticalLayout',
+        'elements': [{'type': 'Control', 'scope': '#/properties/name'}]
+    }, 'schema': {'type': 'object', 'properties': {'name': {'type': 'string'}}}, 'data': {}
+};
 const modelName = `test-model-${new Date().getTime()}`;
 describe('Execute model', () => {
     beforeAll(async () => {
@@ -26,7 +32,7 @@ describe('Execute model', () => {
                 description: '# test model description',
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.IMAGE,
-                parameters: {uischema: {}, schema: {}},
+                parameters: exampleParameters,
                 file: fs.createReadStream('test.tar') as any
                 // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
             });
@@ -44,7 +50,7 @@ describe('Execute model', () => {
         try {
             const result = PlatformAPI.executeModel({
                 modelId: model.id,
-                parameters: {schema: {}, uischema: {}},
+                parameters: exampleParameters,
                 input: fs.createReadStream('image.png') as any
             });
             console.log(result);

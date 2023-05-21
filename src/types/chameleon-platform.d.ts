@@ -80,6 +80,7 @@ export type PlatformConfig = {
     socketPort: number;
     httpPort: number;
     db: MysqlConnectionOptions;
+    imp: {key: string, secret: string}
 };
 
 export type ModelExecutionOptions = {

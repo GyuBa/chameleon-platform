@@ -9,6 +9,12 @@ function sleep(ms) {
 }
 
 const modelName = `test-model-${new Date().getTime()}`;
+const exampleParameters = {
+    'uischema': {
+        'type': 'VerticalLayout',
+        'elements': [{'type': 'Control', 'scope': '#/properties/name'}]
+    }, 'schema': {'type': 'object', 'properties': {'name': {'type': 'string'}}}, 'data': {}
+};
 describe('Upload model', () => {
     beforeAll(async () => {
         await TestingManager.init();
@@ -24,7 +30,7 @@ describe('Upload model', () => {
                 description: '# test model description',
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.IMAGE,
-                parameters: {uischema: {}, schema: {}},
+                parameters: exampleParameters,
                 file: fs.createReadStream('test.tar') as any
                 // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
             });
@@ -42,7 +48,7 @@ describe('Upload model', () => {
                 description: '# test model description',
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.IMAGE,
-                parameters: {uischema: {}, schema: {}},
+                parameters: exampleParameters,
                 files: [fs.createReadStream('Dockerfile') as any]
                 // 주의: Front-end 에서는 fs 모듈이 없으므로 다른 방식으로 처리해야 함
             });

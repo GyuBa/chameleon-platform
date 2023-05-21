@@ -49,6 +49,10 @@ export default class PlatformServer {
                     username: '',
                     password: '',
                     database: '',
+                },
+                imp: {
+                    key: '',
+                    secret: ''
                 }
             }, null, 4), 'utf8');
         }

@@ -11,9 +11,10 @@ import * as multer from 'multer';
 import {MulterUtils} from '../../utils/MulterUtils';
 import {User} from '../../entities/User';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
-import {HistoryStatus, ModelSearchOption, ResponseData} from '../../types/chameleon-platform.common';
+import {HistoryStatus, ModelSearchOption, PointHistoryType, ResponseData} from '../../types/chameleon-platform.common';
 import * as fs from 'fs';
 import {DateUtils} from '../../utils/DateUtils';
+import {PointHistory} from "../../entities/PointHistory";
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -61,13 +62,22 @@ export class ModelService extends HTTPService {
             reason: 'Model does not exist.'
         } as ResponseData);
 
-        if (executor.point - model.price < 0) {
-            return res.status(401).send({
-                msg: 'wrong_permission_error',
-                reason: 'Not enough points to use.'
-            } as ResponseData);
+        if (model.price > 0) {
+            if (executor.point - model.price < 0) {
+                return res.status(401).send({
+                    msg: 'wrong_permission_error',
+                    reason: 'Not enough points to use.'
+                } as ResponseData);
+            }
+            executor.point -= model.price;
+            const pointHistory = new PointHistory();
+            pointHistory.delta = -model.price;
+            pointHistory.leftPoint = executor.point;
+            pointHistory.user = executor;
+            pointHistory.type = PointHistoryType.USE_PAID_MODEL;
+            await this.pointHistoryController.save(pointHistory);
         }
-        executor.point -= model.price;
+
         await this.userController.save(executor);
 
         const file = req.file;
