@@ -6,7 +6,7 @@ import {
     ModelEntityData,
     ModelExecuteData,
     ModelImageUploadData,
-    ModelsRequestOptions,
+    ModelsRequestOptions, PointHistoryEntityData,
     RegionEntityData,
     ResponseData,
     UserEntityData
@@ -120,8 +120,9 @@ export class PlatformAPI {
         return response?.data as HistoryEntityData[];
     }
 
-    public static async getPaidHistories(options?: HistoriesRequestOptions): Promise<HistoryEntityData[]> {
-        return this.getHistories({...options, paidOnly: true});
+    public static async getPointsHistories(): Promise<PointHistoryEntityData[]> {
+        const response = await this.instance.post('/points', this.defaultConfig);
+        return response?.data;
     }
 
     public static async modifyPassword(newPassword: string): Promise<ResponseData> {

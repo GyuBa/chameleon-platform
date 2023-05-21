@@ -3,12 +3,15 @@ import PlatformServer from '../server/core/PlatformServer';
 import {ModelController} from '../controller/ModelController';
 import {PlatformAPI} from '../platform/PlatformAPI';
 import {Region} from '../entities/Region';
+import {History} from '../entities/History';
 import * as Dockerode from 'dockerode';
 import {RegionController} from '../controller/RegionController';
 import {HistoryController} from '../controller/HistoryController';
 import {UserController} from '../controller/UserController';
-import {ModelInputType, ModelOutputType} from '../types/chameleon-platform.common';
+import {HistoryStatus, ModelInputType, ModelOutputType, PointHistoryType} from '../types/chameleon-platform.common';
 import * as fs from 'fs';
+import {PointHistoryController} from "../controller/PointHistoryController";
+import {PointHistory} from "../entities/PointHistory";
 
 const initConfig = JSON.parse(fs.readFileSync('initialize.json', 'utf-8'));
 const mainRegion = new Region();
@@ -98,6 +101,46 @@ describe('Initialize System', () => {
         }
         await Promise.all(promiseList);
     });
+
+    test('Test Point Histories', async () => {
+        const pointHistoryController = new PointHistoryController(PlatformServer.source);
+        const userController = new UserController(PlatformServer.source);
+        const historyController = new HistoryController(PlatformServer.source);
+        const dummyHistory: History = new History();
+        dummyHistory.containerId = 'abcdefghijklmnopqrstuvwxyz';
+        const user = await userController.findByEmail('test@test.com');
+        dummyHistory.numberOfParents = 0;
+        dummyHistory.inputInfo = {fileName: '', fileSize: 0, mimeType: ''};
+        dummyHistory.outputInfo = {fileName: '', fileSize: 0};
+        dummyHistory.status = HistoryStatus.FINISHED;
+        dummyHistory.outputType = ModelOutputType.IMAGE;
+        dummyHistory.inputType = ModelInputType.IMAGE;
+        dummyHistory.inputPath = '';
+        dummyHistory.outputPath = '';
+        dummyHistory.modelPrice = 99999;
+        dummyHistory.description = '';
+        dummyHistory.startedTime = new Date();
+        dummyHistory.endedTime = new Date();
+        dummyHistory.parameters = {data: {}, schema: {}, uischema: {}};
+        dummyHistory.executor = user;
+        await historyController.save(dummyHistory);
+        for (let i = 0; i < 100; i++) {
+            const randomDelta = Math.random() * 100 - 50;
+            user.point += randomDelta;
+            const pointHistory = new PointHistory();
+            pointHistory.delta = randomDelta;
+            pointHistory.leftPoint = user.point;
+            pointHistory.user = user;
+            if (randomDelta > 0) {
+                pointHistory.type = PointHistoryType.CHARGE;
+                pointHistory.modelHistory = dummyHistory;
+            } else {
+                pointHistory.type = PointHistoryType.USE_PAID_MODEL;
+            }
+            await pointHistoryController.save(pointHistory);
+        }
+        await userController.save(user);
+    }, 60 * 60 * 1000);
 
     test('Add images', async () => {
         try {

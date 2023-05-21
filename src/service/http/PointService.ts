@@ -4,13 +4,13 @@ import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 import {PointHistoryType, ResponseData} from '../../types/chameleon-platform.common';
-import axios from "axios";
-import {PaymentAPI} from "../../platform/PaymentAPI";
-import {PlatformAPI} from "../../platform/PlatformAPI";
-import {PlatformService} from "../interfaces/PlatformService";
-import PlatformServer from "../../server/core/PlatformServer";
-import {User} from "../../entities/User";
-import {PointHistory} from "../../entities/PointHistory";
+import axios from 'axios';
+import {PaymentAPI} from '../../platform/PaymentAPI';
+import {PlatformAPI} from '../../platform/PlatformAPI';
+import {PlatformService} from '../interfaces/PlatformService';
+import PlatformServer from '../../server/core/PlatformServer';
+import {User} from '../../entities/User';
+import {PointHistory} from '../../entities/PointHistory';
 
 // TODO: management exception
 export class PointService extends HTTPService {

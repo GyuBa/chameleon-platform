@@ -1,19 +1,18 @@
 import {BaseController} from './interfaces/BaseController';
-import {History} from '../entities/History';
 import {DataSource, SelectQueryBuilder} from 'typeorm';
 import {ModelController} from './ModelController';
 import {PointHistory} from '../entities/PointHistory';
-import {Model} from "../entities/Model";
+import {HistoryController} from "./HistoryController";
 
 export class PointHistoryController extends BaseController<PointHistory> {
     constructor(source: DataSource) {
-        super(source, History);
+        super(source, PointHistory);
     }
 
     public static selectWithJoin(queryBuilder: SelectQueryBuilder<any>): SelectQueryBuilder<any> {
-        queryBuilder = queryBuilder.leftJoinAndSelect('PointHistory.modelHistory', 'ModelHistory');
+        queryBuilder = queryBuilder.leftJoinAndSelect('PointHistory.modelHistory', 'History');
         queryBuilder = queryBuilder.leftJoinAndSelect('PointHistory.user', 'PointHistoryUser');
-        queryBuilder = ModelController.selectWithJoin(queryBuilder);
+        queryBuilder = HistoryController.selectWithJoin(queryBuilder);
         return queryBuilder;
     }
 

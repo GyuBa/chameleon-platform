@@ -1,6 +1,4 @@
 /* EntityData & Keys */
-import {Column, JoinColumn, ManyToOne} from 'typeorm';
-
 export interface HistoryEntityData {
     id: number;
     createdTime: Date;
