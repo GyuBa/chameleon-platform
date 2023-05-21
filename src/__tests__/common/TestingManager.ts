@@ -4,7 +4,7 @@ import {wrapper} from 'axios-cookiejar-support';
 import {CookieJar} from 'tough-cookie';
 import {PlatformAPI} from '../../platform/PlatformAPI';
 import * as FormData from 'form-data';
-import * as stream from "node:stream";
+import * as stream from 'node:stream';
 
 export class TestingManager {
     static async init() {

@@ -1,4 +1,6 @@
 /* EntityData & Keys */
+import {Column, JoinColumn, ManyToOne} from 'typeorm';
+
 export interface HistoryEntityData {
     id: number;
     createdTime: Date;
@@ -130,13 +132,17 @@ export const User: Array<keyof UserEntityData> = [
     'point'
 ];
 
-export interface WalletEntityData {
+export interface PointHistoryEntityData {
     id: number;
-    point: number;
+    createdTime: Date
     user: UserEntityData;
+    modelHistory?: ModelEntityData;
+    type: PointHistoryType;
+    delta: number;
+    leftPoint: number;
 }
 
-export const Wallet: Array<keyof WalletEntityData> = ['id', 'point', 'user'];
+export const PointHistory: Array<keyof PointHistoryEntityData> = ['id', 'createdTime', 'user', 'modelHistory', 'type', 'delta', 'leftPoint'];
 
 export const ENTITY_DATA_KEYS = {
     History,
@@ -144,7 +150,7 @@ export const ENTITY_DATA_KEYS = {
     Model,
     Region,
     User,
-    Wallet
+    PointHistory
 };
 
 /* Enums */
@@ -277,6 +283,11 @@ export type SocketExitMessage = {
 export enum SocketReceiveMode {
     JSON,
     FILE
+}
+
+export enum PointHistoryType {
+    USE_PAID_MODEL = 'UsePaidModel',
+    CHARGE = 'Charge'
 }
 
 /* Upload Parameters */

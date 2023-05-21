@@ -3,19 +3,25 @@ import {PlatformService} from '../../../service/interfaces/PlatformService';
 import * as streams from 'memory-streams';
 import {Terminal} from 'xterm-headless';
 import {SerializeAddon} from 'xterm-addon-serialize';
-import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as Dockerode from 'dockerode';
 import PlatformServer from '../../core/PlatformServer';
 import {
-    HistoryStatus, ResponseData, SocketFileMessage, SocketFileReceiveEndMessage, SocketFileWaitMessage,
+    HistoryStatus,
+    PointHistoryType,
+    SocketFileMessage,
+    SocketFileReceiveEndMessage,
+    SocketFileWaitMessage,
     SocketLaunchMessage,
-    SocketMessageType, SocketProcessEndMessage,
-    SocketReceiveMode, SocketTerminalMessage
+    SocketMessageType,
+    SocketProcessEndMessage,
+    SocketReceiveMode,
+    SocketTerminalMessage
 } from '../../../types/chameleon-platform.common';
 import {DateUtils} from '../../../utils/DateUtils';
 import {MulterUtils} from '../../../utils/MulterUtils';
 import {Model} from '../../../entities/Model';
+import {PointHistory} from "../../../entities/PointHistory";
 
 export default class DefaultSocketHandler extends PlatformService implements SocketHandler<DefaultSocketServer, DefaultSocket> {
     readonly handles: { [messageType: string]: SocketHandle } = {};
@@ -80,10 +86,21 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     server.manager.sendExit(1, 'Wrong parameters.', [socket]);
                     return;
                 }
-                if (history.executor.point - model.price < 0) {
-                    server.manager.sendExit(1, 'Not enough points to use.', [socket]);
+
+                if (model.price > 0) {
+                    if (history.executor.point - model.price < 0) {
+                        server.manager.sendExit(1, 'Not enough points to use.', [socket]);
+                        return;
+                    }
+                    history.executor.point -= model.price;
+                    const pointHistory = new PointHistory();
+                    pointHistory.delta = -model.price;
+                    pointHistory.leftPoint = history.executor.point;
+                    pointHistory.user = history.executor;
+                    pointHistory.type = PointHistoryType.USE_PAID_MODEL;
+                    await this.pointHistoryController.save(pointHistory);
                 }
-                history.executor.point -= model.price;
+
                 await this.userController.save(history.executor);
 
                 socket.data.executedHistory = await this.modelExecutionManager.executeModel(model, {

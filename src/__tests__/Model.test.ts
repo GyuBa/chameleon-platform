@@ -1,7 +1,7 @@
 import {TestingManager} from './common/TestingManager';
 import {PlatformAPI} from "../platform/PlatformAPI";
 import {LoginUtils} from "./common/LoginUtils";
-import {ModelInputType, ModelSearchOption} from "../types/chameleon-platform.common";
+import {ModelSearchOption} from "../types/chameleon-platform.common";
 
 
 describe('Login', () => {

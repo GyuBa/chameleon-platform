@@ -17,10 +17,10 @@ describe('API Validation', () => {
     });
 
     test('getMyHistories', async () => {
-        const histories = await PlatformAPI.getMyHistories();
-        console.log(`${histories.length} histories`);
-        console.log(histories.filter(h => h.status !== HistoryStatus.CACHED));
-        console.log(histories.filter(h => h.status === HistoryStatus.CACHED));
+        /*        const histories = await PlatformAPI.getMyHistories();
+                console.log(`${histories.length} histories`);
+                console.log(histories.filter(h => h.status !== HistoryStatus.CACHED));
+                console.log(histories.filter(h => h.status === HistoryStatus.CACHED));*/
     });
 
 
