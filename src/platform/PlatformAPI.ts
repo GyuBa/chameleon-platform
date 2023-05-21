@@ -114,13 +114,13 @@ export class PlatformAPI {
         return response?.data as HistoryEntityData;
     }
 
-    public static async getHistories(options: HistoriesRequestOptions): Promise<HistoryEntityData[]> {
+    public static async getHistories(options?: HistoriesRequestOptions): Promise<HistoryEntityData[]> {
         const response = await this.instance.get('/histories', {...this.defaultConfig, params: options});
         this.restoreTimeProperty(response?.data);
         return response?.data as HistoryEntityData[];
     }
 
-    public static async getPaidHistories(options: HistoriesRequestOptions): Promise<HistoryEntityData[]> {
+    public static async getPaidHistories(options?: HistoriesRequestOptions): Promise<HistoryEntityData[]> {
         return this.getHistories({...options, paidOnly: true});
     }
 
