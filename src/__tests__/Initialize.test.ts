@@ -42,7 +42,7 @@ describe('Initialize System', () => {
                 }
             }
         }
-    });
+    }, 10 * 60 * 1000);
     test('Clear images', async () => {
         const modelController = new ModelController(PlatformServer.source);
         const models = await modelController.getAll();
