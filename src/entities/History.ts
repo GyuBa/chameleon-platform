@@ -4,10 +4,11 @@ import {Model} from './Model';
 import {User} from './User';
 import {
     HistoryStatus,
+    ModelExecutionParameters,
     ModelInputInfo,
     ModelInputType,
     ModelOutputInfo,
-    ModelOutputType, ModelParameters
+    ModelOutputType
 } from '../types/chameleon-platform.common';
 
 @Entity()
@@ -63,7 +64,7 @@ export class History extends Common {
         endedTime: Date;
 
     @Column({nullable: true, type: 'json'})
-        parameters: ModelParameters;
+        parameters: ModelExecutionParameters;
     @Column({nullable: true, type: 'text'})
         terminal: string;
 
