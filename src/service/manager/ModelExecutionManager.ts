@@ -32,6 +32,8 @@ export class ModelExecutionManager extends ServiceManager {
             history = newHistory;
             container = newContainer;
         }
+        console.log((`[${DateUtils.getConsoleTime()}] (Model: ${model.name}, ContainerId: ${container.id}) container created!`));
+
 
         history.modelPrice = model.price;
         history.startedTime = new Date();
