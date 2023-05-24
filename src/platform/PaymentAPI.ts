@@ -1,16 +1,4 @@
 import axios, {AxiosInstance} from 'axios';
-import {
-    HistoriesRequestOptions,
-    HistoryEntityData,
-    ModelDockerfileUploadData,
-    ModelEntityData,
-    ModelExecuteData,
-    ModelImageUploadData,
-    ModelsRequestOptions,
-    RegionEntityData,
-    ResponseData,
-    UserEntityData
-} from '../types/chameleon-platform.common';
 
 export class PaymentAPI {
     static instance: AxiosInstance = axios.create({
