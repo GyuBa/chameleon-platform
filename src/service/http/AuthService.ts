@@ -71,13 +71,21 @@ export class AuthService extends HTTPService {
         if (!req.isAuthenticated()) {
             return res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
         }
-        if (!(req.body.password)) {
+        if (!(req.body.newPassword)) {
             return res.status(401).send({msg: 'non_field_error'} as ResponseData);
         }
-        const password = await bcrypt.hashSync(req.body.password, await bcrypt.genSaltSync());
+
+        const user = req.user as User;
+        if(req.body.oldPassword) {
+            const oldPassword = await bcrypt.hashSync(req.body.oldPassword, await bcrypt.genSaltSync());
+            if(user.password !== oldPassword) {
+                return res.status(401).send({msg: 'wrong_information_error'} as ResponseData);
+            }
+        }
+
+        const newPassword = await bcrypt.hashSync(req.body.newPassword, await bcrypt.genSaltSync());
         try {
-            const user = req.user as User;
-            user.password = password;
+            user.password = newPassword;
             await this.userController.save(user);
             return res.status(200).send({msg: 'ok'} as ResponseData);
         } catch (e) {

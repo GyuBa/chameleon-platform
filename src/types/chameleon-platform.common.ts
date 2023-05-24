@@ -134,7 +134,7 @@ export interface PointHistoryEntityData {
     id: number;
     createdTime: Date
     user: UserEntityData;
-    modelHistory?: ModelEntityData;
+    modelHistory?: HistoryEntityData;
     type: PointHistoryType;
     delta: number;
     leftPoint: number;
