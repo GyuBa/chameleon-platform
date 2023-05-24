@@ -76,9 +76,9 @@ export class AuthService extends HTTPService {
         }
 
         const user = req.user as User;
-        if(req.body.oldPassword) {
+        if (req.body.oldPassword) {
             const oldPassword = await bcrypt.hashSync(req.body.oldPassword, await bcrypt.genSaltSync());
-            if(user.password !== oldPassword) {
+            if (await bcrypt.compare(oldPassword, user.password)) {
                 return res.status(401).send({msg: 'wrong_information_error'} as ResponseData);
             }
         }
