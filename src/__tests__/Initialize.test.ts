@@ -10,8 +10,9 @@ import {HistoryController} from '../controller/HistoryController';
 import {UserController} from '../controller/UserController';
 import {HistoryStatus, ModelInputType, ModelOutputType, PointHistoryType} from '../types/chameleon-platform.common';
 import * as fs from 'fs';
-import {PointHistoryController} from "../controller/PointHistoryController";
-import {PointHistory} from "../entities/PointHistory";
+import {PointHistoryController} from '../controller/PointHistoryController';
+import {PointHistory} from '../entities/PointHistory';
+import {clearInterval} from 'timers';
 
 const initConfig = JSON.parse(fs.readFileSync('initialize.json', 'utf-8'));
 const mainRegion = new Region();
@@ -19,6 +20,12 @@ mainRegion.name = initConfig.mainRegion.name;
 mainRegion.host = initConfig.mainRegion.host;
 mainRegion.port = initConfig.mainRegion.port;
 mainRegion.cacheSize = initConfig.mainRegion.cacheSize;
+
+const dummyRegion = new Region();
+dummyRegion.name = 'dummy';
+dummyRegion.host = mainRegion.host;
+dummyRegion.port = mainRegion.port;
+dummyRegion.cacheSize = mainRegion.cacheSize;
 const exampleParameters = {
     'uischema': {
         'type': 'VerticalLayout',
@@ -41,7 +48,7 @@ describe('Initialize System', () => {
                     console.log('Remove', history.id, history.model.name, history.containerId);
                     await container.remove({force: true});
                 } catch (e) {
-                    console.error(e);
+                    // console.error(e);
                 }
             }
         }
@@ -59,14 +66,14 @@ describe('Initialize System', () => {
                     const container = await docker.getContainer(containerInfo.Id);
                     await container.remove({force: true});
                 } catch (e) {
-                    console.error(e);
+                    // console.error(e);
                 }
             }
             try {
                 console.log('Remove', model.id, model.image.getRepositoryTagString());
                 await image.remove({force: true});
             } catch (e) {
-                console.error(e);
+                // console.error(e);
             }
         }
     }, 10 * 60 * 1000);
@@ -79,6 +86,7 @@ describe('Initialize System', () => {
     test('Generate Region', async () => {
         const regionController = new RegionController(PlatformServer.source);
         await regionController.save(mainRegion);
+        await regionController.save(dummyRegion);
     });
 
     test('Generate Test Accounts', async () => {
@@ -102,28 +110,52 @@ describe('Initialize System', () => {
         await Promise.all(promiseList);
     });
 
+    test('Add sample model & history', async () => {
+        console.log('Creating test:binary-output-model');
+        await PlatformAPI.signIn('test@test.com', 'test');
+        await PlatformAPI.uploadModelWithImage({
+            regionName: 'mongle',
+            modelName: 'Binary Output Model',
+            description: '# Binary Output Model \n\n 간단한 형식으로 파일을 출력하는 모델입니다.',
+            inputType: ModelInputType.BINARY,
+            outputType: ModelOutputType.BINARY,
+            parameters: exampleParameters,
+            file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
+                responseType: 'stream'
+            })).data,
+            category: 'Sample',
+            price: 0
+        });
+        await PlatformAPI.executeModel({
+            modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test', 'binary-output-model')).id,
+            parameters: exampleParameters.data,
+            input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/image.png', {
+                responseType: 'stream'
+            })).data
+        });
+        const historyController = new HistoryController(PlatformServer.source);
+        await new Promise(resolve => {
+            const i = setInterval(async async_ => {
+                try {
+                    const history = await historyController.findById(1);
+                    if (history.status == HistoryStatus.FINISHED) {
+                        clearInterval(i);
+                        resolve(undefined);
+                    }
+                } catch (e) {
+                    /* empty */
+                }
+            }, 250);
+        });
+    }, 60 * 60 * 1000);
+
     test('Test Point Histories', async () => {
         const pointHistoryController = new PointHistoryController(PlatformServer.source);
         const userController = new UserController(PlatformServer.source);
         const historyController = new HistoryController(PlatformServer.source);
-        const dummyHistory: History = new History();
-        dummyHistory.containerId = 'abcdefghijklmnopqrstuvwxyz';
+        const dummyHistory: History = await historyController.findById(1);
+        console.log(dummyHistory);
         const user = await userController.findByEmail('test@test.com');
-        dummyHistory.numberOfParents = 0;
-        dummyHistory.inputInfo = {fileName: '', fileSize: 0, mimeType: ''};
-        dummyHistory.outputInfo = {fileName: '', fileSize: 0};
-        dummyHistory.status = HistoryStatus.FINISHED;
-        dummyHistory.outputType = ModelOutputType.IMAGE;
-        dummyHistory.inputType = ModelInputType.IMAGE;
-        dummyHistory.inputPath = '';
-        dummyHistory.outputPath = '';
-        dummyHistory.modelPrice = 99999;
-        dummyHistory.description = '';
-        dummyHistory.startedTime = new Date();
-        dummyHistory.endedTime = new Date();
-        dummyHistory.parameters = {data: {}, schema: {}, uischema: {}};
-        dummyHistory.executor = user;
-        await historyController.save(dummyHistory);
         for (let i = 0; i < 100; i++) {
             const randomDelta = Math.random() * 100 - 50;
             user.point += randomDelta;
@@ -133,8 +165,8 @@ describe('Initialize System', () => {
             pointHistory.user = user;
             if (randomDelta > 0) {
                 pointHistory.type = PointHistoryType.CHARGE;
-                pointHistory.modelHistory = dummyHistory;
             } else {
+                pointHistory.modelHistory = dummyHistory;
                 pointHistory.type = PointHistoryType.USE_PAID_MODEL;
             }
             await pointHistoryController.save(pointHistory);
@@ -144,6 +176,7 @@ describe('Initialize System', () => {
 
     test('Add images', async () => {
         try {
+            console.log('Creating test1:image-output-model');
             await PlatformAPI.signIn('test1@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
@@ -159,6 +192,15 @@ describe('Initialize System', () => {
                 price: 0
             });
 
+            await PlatformAPI.executeModel({
+                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test1', 'image-output-model')).id,
+                parameters: exampleParameters.data,
+                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/image.png', {
+                    responseType: 'stream'
+                })).data
+            });
+
+            console.log('Creating test2:text-output-model');
             await PlatformAPI.signIn('test2@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
@@ -166,7 +208,7 @@ describe('Initialize System', () => {
                 description: '# Text Output Model \n\n 간단한 형식으로 텍스트를 출력하는 모델입니다.',
                 inputType: ModelInputType.TEXT,
                 outputType: ModelOutputType.TEXT,
-                parameters: {uischema: {}, schema: {}, data: {}},
+                parameters: exampleParameters,
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-text.tar', {
                     responseType: 'stream'
                 })).data,
@@ -174,6 +216,15 @@ describe('Initialize System', () => {
                 price: 0
             });
 
+            await PlatformAPI.executeModel({
+                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test2', 'text-output-model')).id,
+                parameters: exampleParameters.data,
+                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/text.txt', {
+                    responseType: 'stream'
+                })).data
+            });
+
+            console.log('Creating test3:text-output-model');
             await PlatformAPI.signIn('test3@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
@@ -181,7 +232,7 @@ describe('Initialize System', () => {
                 description: '# Sound Output Model \n\n 간단한 형식으로 사운드를 출력하는 모델입니다.',
                 inputType: ModelInputType.SOUND,
                 outputType: ModelOutputType.SOUND,
-                parameters: {uischema: {}, schema: {}, data: {}},
+                parameters: exampleParameters,
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-sound.tar', {
                     responseType: 'stream'
                 })).data,
@@ -189,6 +240,16 @@ describe('Initialize System', () => {
                 price: 0
             });
 
+
+            await PlatformAPI.executeModel({
+                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test3', 'sound-output-model')).id,
+                parameters: exampleParameters.data,
+                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/sound.mp3', {
+                    responseType: 'stream'
+                })).data
+            });
+
+            console.log('Creating test4:video-output-model');
             await PlatformAPI.signIn('test4@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
@@ -204,6 +265,15 @@ describe('Initialize System', () => {
                 price: 0
             });
 
+            await PlatformAPI.executeModel({
+                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test4', 'video-output-model')).id,
+                parameters: exampleParameters.data,
+                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/video.mp4', {
+                    responseType: 'stream'
+                })).data
+            });
+
+            console.log('Creating test5:empty-output-model');
             await PlatformAPI.signIn('test5@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
@@ -217,8 +287,17 @@ describe('Initialize System', () => {
                 })).data
             });
 
-            await PlatformAPI.signIn('test6@test.com', 'test');
+            // Temporal
+            await PlatformAPI.executeModel({
+                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test5', 'empty-input-model')).id,
+                parameters: exampleParameters.data,
+                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/text.txt', {
+                    responseType: 'stream'
+                })).data
+            });
 
+            console.log('Creating test6:zip-input-model');
+            await PlatformAPI.signIn('test6@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: 'mongle',
                 modelName: 'Zip Input Model',
@@ -231,8 +310,17 @@ describe('Initialize System', () => {
                 })).data
             });
 
+            await PlatformAPI.executeModel({
+                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test6', 'zip-input-model')).id,
+                parameters: exampleParameters.data,
+                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/text.txt', {
+                    responseType: 'stream'
+                })).data
+            });
+
             await PlatformAPI.signIn('test@test.com', 'test');
             for (let i = 1; i <= 30; i++) {
+                console.log(`Creating test${i}:test-model${i}`);
                 await PlatformAPI.uploadModelWithImage({
                     regionName: 'mongle',
                     modelName: `Test Model${i}`,
