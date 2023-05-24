@@ -75,9 +75,8 @@ export class AuthService extends HTTPService {
             return res.status(401).send({msg: 'non_field_error'} as ResponseData);
         }
         const password = await bcrypt.hashSync(req.body.password, await bcrypt.genSaltSync());
-        console.log(req.user);
         try {
-            const user = new User();
+            const user = req.user as User;
             user.password = password;
             await this.userController.save(user);
             return res.status(200).send({msg: 'ok'} as ResponseData);
