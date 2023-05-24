@@ -125,8 +125,11 @@ export class PlatformAPI {
         return response?.data;
     }
 
-    public static async modifyPassword(newPassword: string): Promise<ResponseData> {
-        const response = await this.instance.post('/auths/modify-password', {password: newPassword}, this.defaultConfig);
+    public static async modifyPassword(newPassword: string, oldPassword?: string): Promise<ResponseData> {
+        const response = await this.instance.post('/auths/modify-password', {
+            newPassword,
+            oldPassword
+        }, this.defaultConfig);
         return response?.data;
     }
 
@@ -147,6 +150,11 @@ export class PlatformAPI {
 
     public static async updatePoint(amount: number): Promise<ResponseData> {
         const response = await this.instance.post('/points/update', {amount}, this.defaultConfig);
+        return response?.data;
+    }
+
+    public static async chargePoint(paymentResponse: any): Promise<ResponseData> {
+        const response = await this.instance.post('/points/charge', {paymentResponse}, this.defaultConfig);
         return response?.data;
     }
 }
