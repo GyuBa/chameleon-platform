@@ -18,7 +18,7 @@ export interface HistoryEntityData {
     model: ModelEntityData;
     startedTime: Date;
     endedTime: Date;
-    parameters: ModelParameters;
+    parameters: ModelExecutionParameters;
     terminal: string;
 }
 
@@ -303,9 +303,11 @@ export type ModelImageUploadData = ModelCommonUploadData & { file: File }
 
 export type ModelDockerfileUploadData = ModelCommonUploadData & { files: File[] }
 
-export type ModelExecuteData = {
+export type ModelExecutionParameters = any;
+
+export type ModelExecutionData = {
     modelId: number;
-    parameters: ModelParameters;
+    parameters: ModelExecutionParameters;
     input: File;
 }
 

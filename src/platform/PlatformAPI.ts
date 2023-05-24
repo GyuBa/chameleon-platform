@@ -4,7 +4,7 @@ import {
     HistoryEntityData,
     ModelDockerfileUploadData,
     ModelEntityData,
-    ModelExecuteData,
+    ModelExecutionData,
     ModelImageUploadData,
     ModelsRequestOptions, PointHistoryEntityData,
     RegionEntityData,
@@ -62,7 +62,7 @@ export class PlatformAPI {
         return response?.data;
     }
 
-    public static async executeModel(executeData: ModelExecuteData): Promise<ResponseData> {
+    public static async executeModel(executeData: ModelExecutionData): Promise<ResponseData> {
         const response = await this.instance.post('/models/execute', this.toFormData(executeData), this.uploadConfig);
         return response?.data;
     }
