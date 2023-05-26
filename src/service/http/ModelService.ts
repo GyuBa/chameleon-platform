@@ -62,33 +62,32 @@ export class ModelService extends HTTPService {
             reason: 'Model does not exist.'
         } as ResponseData);
 
-        if (model.price > 0) {
-            if (executor.point - model.price < 0) {
-                return res.status(401).send({
-                    msg: 'wrong_permission_error',
-                    reason: 'Not enough points to use.'
-                } as ResponseData);
-            }
-            executor.point -= model.price;
-            const pointHistory = new PointHistory();
-            pointHistory.delta = -model.price;
-            pointHistory.leftPoint = executor.point;
-            pointHistory.user = executor;
-            pointHistory.type = PointHistoryType.USE_PAID_MODEL;
-            await this.pointHistoryController.save(pointHistory);
-        }
-
-        await this.userController.save(executor);
-
         const file = req.file;
         setTimeout(async () => {
-            await this.modelExecutionManager.executeModel(model, {
+            const history = await this.modelExecutionManager.executeModel(model, {
                 parameters, executor, inputPath: file.path, inputInfo: {
                     fileName: file.originalname,
                     mimeType: file.mimetype,
                     fileSize: file.size
                 }
             });
+            if (model.price > 0) {
+                if (executor.point - model.price < 0) {
+                    return res.status(401).send({
+                        msg: 'wrong_permission_error',
+                        reason: 'Not enough points to use.'
+                    } as ResponseData);
+                }
+                executor.point -= model.price;
+                const pointHistory = new PointHistory();
+                pointHistory.delta = -model.price;
+                pointHistory.leftPoint = executor.point;
+                pointHistory.user = executor;
+                pointHistory.type = PointHistoryType.USE_PAID_MODEL;
+                pointHistory.modelHistory = history;
+                await this.pointHistoryController.save(pointHistory);
+            }
+            await this.userController.save(executor);
         });
 
         return res.status(200).send({msg: 'ok'});
