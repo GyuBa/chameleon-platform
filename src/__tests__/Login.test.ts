@@ -30,6 +30,14 @@ describe('Login', () => {
         console.log(result);
     });
 
+    /*
+        test('change-password', async () => {
+            await PlatformAPI.signIn('test8@test.com', 'test');
+            const result = await PlatformAPI.modifyPassword('test', 'test1');
+            console.log(result);
+        });
+    */
+
     test('sign-out', async () => {
         const result = await PlatformAPI.signOut();
         console.log(result);
