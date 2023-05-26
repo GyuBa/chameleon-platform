@@ -21,6 +21,12 @@ mainRegion.host = initConfig.mainRegion.host;
 mainRegion.port = initConfig.mainRegion.port;
 mainRegion.cacheSize = initConfig.mainRegion.cacheSize;
 
+const subRegion = new Region();
+mainRegion.name = initConfig.subRegion.name;
+mainRegion.host = initConfig.subRegion.host;
+mainRegion.port = initConfig.subRegion.port;
+mainRegion.cacheSize = initConfig.subRegion.cacheSize;
+
 const dummyRegion = new Region();
 dummyRegion.name = 'dummy';
 dummyRegion.host = mainRegion.host;
@@ -86,6 +92,7 @@ describe('Initialize System', () => {
     test('Generate Region', async () => {
         const regionController = new RegionController(PlatformServer.source);
         await regionController.save(mainRegion);
+        await regionController.save(subRegion);
         await regionController.save(dummyRegion);
     });
 
