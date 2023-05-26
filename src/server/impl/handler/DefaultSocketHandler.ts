@@ -87,6 +87,13 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     return;
                 }
 
+                socket.data.executedHistory = await this.modelExecutionManager.executeModel(model, {
+                    executor: history.executor, inputPath, parameters, inputInfo: {
+                        fileSize: fs.statSync(inputPath).size,
+                        fileName: 'input'
+                    }, parent: history
+                });
+
                 if (model.price > 0) {
                     if (history.executor.point - model.price < 0) {
                         server.manager.sendExit(1, 'Not enough points to use.', [socket]);
@@ -98,17 +105,11 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     pointHistory.leftPoint = history.executor.point;
                     pointHistory.user = history.executor;
                     pointHistory.type = PointHistoryType.USE_PAID_MODEL;
+                    pointHistory.modelHistory = history;
                     await this.pointHistoryController.save(pointHistory);
                 }
-
                 await this.userController.save(history.executor);
 
-                socket.data.executedHistory = await this.modelExecutionManager.executeModel(model, {
-                    executor: history.executor, inputPath, parameters, inputInfo: {
-                        fileSize: fs.statSync(inputPath).size,
-                        fileName: 'input'
-                    }, parent: history
-                });
                 console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id} Sub) ExecutedHistory: ${socket.data.executedHistory.id}, NumberOfParents: ${socket.data.executedHistory.numberOfParents}`);
             }
         };
