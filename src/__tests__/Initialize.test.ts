@@ -517,7 +517,8 @@ describe('Initialize System', () => {
                     description: dummy.description,
                     inputType: dummy.inputType,
                     outputType: dummy.outputType,
-                    parameters: exampleParameters,
+                    category: dummy.category,
+                    parameters: {uischema: {}, schema: {}, data: {}},
                     file: (await PlatformAPI.instance.get(`http://files.chameleon.best/images/simple-output-${dummy.outputType}.tar`, {
                         responseType: 'stream'
                     })).data,
@@ -537,6 +538,7 @@ describe('Initialize System', () => {
             description: '# Image Captioning \n\n 이미지를 묘사하는 텍스트를 생성하는 모델입니다',
             inputType: ModelInputType.IMAGE,
             outputType: ModelOutputType.IMAGE,
+            category: 'Image Processing',
             parameters: {uischema: {}, data: {}, schema: {}},
             file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/image-captioning.tar', {
                 responseType: 'stream'
