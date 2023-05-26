@@ -22,10 +22,10 @@ mainRegion.port = initConfig.mainRegion.port;
 mainRegion.cacheSize = initConfig.mainRegion.cacheSize;
 
 const subRegion = new Region();
-mainRegion.name = initConfig.subRegion.name;
-mainRegion.host = initConfig.subRegion.host;
-mainRegion.port = initConfig.subRegion.port;
-mainRegion.cacheSize = initConfig.subRegion.cacheSize;
+subRegion.name = initConfig.subRegion.name;
+subRegion.host = initConfig.subRegion.host;
+subRegion.port = initConfig.subRegion.port;
+subRegion.cacheSize = initConfig.subRegion.cacheSize;
 
 const dummyRegion = new Region();
 dummyRegion.name = 'dummy';
