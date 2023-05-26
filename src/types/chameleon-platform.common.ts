@@ -200,6 +200,10 @@ export enum WSMessageType {
     UPDATE_HISTORIES = 'UpdateHistories'
 }
 
+export type WSMessage = {
+    msg: string;
+} & any;
+
 export type WSPathMessage = {
     msg: WSMessageType.PATH;
     path: string;
@@ -390,7 +394,9 @@ export type ExecutionData = {
 export const SitePaths = {
     ROOT: '/',
     PAYMENT: '/payment',
+    PAYMENT_HISTORIES: '/payment-histories',
     MODEL: (username: string, uniqueName: string) => `/model/${username}/${uniqueName}`,
+    MODEL_RAW: '/model',
     MODELS: '/models',
     ALL_MODELS: '/models/all',
     MY_MODELS: '/models/my',
@@ -399,6 +405,7 @@ export const SitePaths = {
     CREATE_MODEL_DESCRIPTION: '/models/create/description',
     CREATE_MODEL_PARAMETERS: '/models/create/parameters',
     HISTORY: (historyId: number | string) => `/history/${Number.isInteger(historyId) ? (historyId as number + 1) : historyId}`,
+    HISTORY_RAW: '/history',
     HISTORIES: '/histories',
     ACCOUNT: '/account',
     SIGN_IN: '/sign-in',
