@@ -304,7 +304,7 @@ describe('Initialize System', () => {
         console.log('Creating test:binary-output-model');
         await PlatformAPI.signIn('test@test.com', 'test');
         await PlatformAPI.uploadModelWithImage({
-            regionName: 'mongle',
+            regionName: mainRegion.name,
             modelName: 'Binary Output Model',
             description: '# Binary Output Model \n\n 간단한 형식으로 파일을 출력하는 모델입니다.',
             inputType: ModelInputType.BINARY,
@@ -369,7 +369,7 @@ describe('Initialize System', () => {
             console.log('Creating test1:image-output-model');
             await PlatformAPI.signIn('test1@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
-                regionName: 'mongle',
+                regionName: mainRegion.name,
                 modelName: 'Image Output Model',
                 description: '# Image Output Model \n\n 간단한 형식으로 이미지를 출력하는 모델입니다.',
                 inputType: ModelInputType.IMAGE,
@@ -393,7 +393,7 @@ describe('Initialize System', () => {
             console.log('Creating test2:text-output-model');
             await PlatformAPI.signIn('test2@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
-                regionName: 'mongle',
+                regionName: mainRegion.name,
                 modelName: 'Text Output Model',
                 description: '# Text Output Model \n\n 간단한 형식으로 텍스트를 출력하는 모델입니다.',
                 inputType: ModelInputType.TEXT,
@@ -417,7 +417,7 @@ describe('Initialize System', () => {
             console.log('Creating test3:text-output-model');
             await PlatformAPI.signIn('test3@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
-                regionName: 'mongle',
+                regionName: mainRegion.name,
                 modelName: 'Sound Output Model',
                 description: '# Sound Output Model \n\n 간단한 형식으로 사운드를 출력하는 모델입니다.',
                 inputType: ModelInputType.SOUND,
@@ -442,7 +442,7 @@ describe('Initialize System', () => {
             console.log('Creating test4:video-output-model');
             await PlatformAPI.signIn('test4@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
-                regionName: 'mongle',
+                regionName: mainRegion.name,
                 modelName: 'Video Output Model',
                 description: '# Video Output Model \n\n 간단한 형식으로 비디오를 출력하는 모델입니다.',
                 inputType: ModelInputType.VIDEO,
@@ -466,7 +466,7 @@ describe('Initialize System', () => {
             console.log('Creating test5:empty-output-model');
             await PlatformAPI.signIn('test5@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
-                regionName: 'mongle',
+                regionName: mainRegion.name,
                 modelName: 'Empty Input Model',
                 description: '# Empty Model \n\n 빈 입력을 받는 모델입니다.',
                 inputType: ModelInputType.EMPTY,
@@ -489,7 +489,7 @@ describe('Initialize System', () => {
             console.log('Creating test6:zip-input-model');
             await PlatformAPI.signIn('test6@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
-                regionName: 'mongle',
+                regionName: mainRegion.name,
                 modelName: 'Zip Input Model',
                 description: '# Empty Model \n\n 여러개의 파일을 받는 모델입니다.',
                 inputType: ModelInputType.ZIP,
@@ -512,7 +512,7 @@ describe('Initialize System', () => {
             for (const dummy of dummies) {
                 console.log(`Creating ${dummy.modelName}`);
                 await PlatformAPI.uploadModelWithImage({
-                    regionName: 'mongle',
+                    regionName: mainRegion.name,
                     modelName: dummy.modelName,
                     description: dummy.description,
                     inputType: dummy.inputType,
@@ -533,7 +533,7 @@ describe('Initialize System', () => {
         console.log('Creating test7:image-captioning');
         await PlatformAPI.signIn('test7@test.com', 'test');
         await PlatformAPI.uploadModelWithImage({
-            regionName: 'mongle',
+            regionName: mainRegion.name,
             modelName: 'Image Captioning',
             description: '# Image Captioning \n\n 이미지를 묘사하는 텍스트를 생성하는 모델입니다',
             inputType: ModelInputType.IMAGE,
