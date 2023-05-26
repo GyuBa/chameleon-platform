@@ -508,20 +508,6 @@ describe('Initialize System', () => {
                 })).data
             });
 
-            console.log('Creating test7:image-captioning');
-            await PlatformAPI.signIn('test7@test.com', 'test');
-            await PlatformAPI.uploadModelWithImage({
-                regionName: 'mongle',
-                modelName: 'Image captioning',
-                description: '# Image captioning \n\n 여러개의 파일을 받는 모델입니다.',
-                inputType: ModelInputType.IMAGE,
-                outputType: ModelOutputType.IMAGE,
-                parameters: {uischema: {}, data: {}, schema: {}},
-                file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/image-captioning.tar', {
-                    responseType: 'stream'
-                })).data
-            });
-
             await PlatformAPI.signIn('test@test.com', 'test');
             for (const dummy of dummies) {
                 console.log(`Creating ${dummy.modelName}`);
@@ -542,5 +528,19 @@ describe('Initialize System', () => {
             console.error(e);
             fail(e.response.data);
         }
+
+        console.log('Creating test7:image-captioning');
+        await PlatformAPI.signIn('test7@test.com', 'test');
+        await PlatformAPI.uploadModelWithImage({
+            regionName: 'mongle',
+            modelName: 'Image Captioning',
+            description: '# Image Captioning \n\n 이미지를 묘사하는 텍스트를 생성하는 모델입니다',
+            inputType: ModelInputType.IMAGE,
+            outputType: ModelOutputType.IMAGE,
+            parameters: {uischema: {}, data: {}, schema: {}},
+            file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/image-captioning.tar', {
+                responseType: 'stream'
+            })).data
+        });
     }, 60 * 60 * 1000);
 });
