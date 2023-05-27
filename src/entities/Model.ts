@@ -10,7 +10,7 @@ export class Model extends Common {
         uniqueName: string;
     @Column()
         name: string;
-    @Column()
+    @Column({type: 'text'})
         description: string;
 
     @ManyToOne(
