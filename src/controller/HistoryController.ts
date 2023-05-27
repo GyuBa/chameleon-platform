@@ -43,6 +43,18 @@ export class HistoryController extends BaseController<History> {
         }
     }
 
+    async findByOutputPath(outputPath: string): Promise<History> {
+        try {
+            return await HistoryController.selectWithJoin(this.repository.createQueryBuilder())
+                .select()
+                .where('History.outputPath=:outputPath', {outputPath})
+                .getOne();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     async findAllByExecutorId(executorId: number): Promise<History[]> {
         try {
             return HistoryController.selectWithJoin(this.repository.createQueryBuilder())

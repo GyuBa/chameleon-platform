@@ -192,6 +192,7 @@ export enum ModelOutputType {
     SOUND = 'sound',
     TEXT = 'text',
     ZIP_GALLERY = 'zip-gallery',
+    HTML = 'html',
     BINARY = 'binary'
 }
 

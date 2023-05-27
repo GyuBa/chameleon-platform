@@ -5,13 +5,23 @@ import {Server} from 'http';
 import * as session from 'express-session';
 import {TypeormStore} from 'connect-typeorm';
 import PlatformServer from '../../server/core/PlatformServer';
-import * as path from "path";
-import * as fs from "fs";
+import {ModelOutputType} from "../../types/chameleon-platform.common";
 
 export class ExpressService extends HTTPService {
     init(app: Application, server: Server) {
         app.use('/uploads/inputs', express.static('uploads/inputs'));
-        app.use('/uploads/outputs', express.static('uploads/outputs'));
+        app.use('/uploads/outputs', async (req, res, next) => {
+            try {
+                const outputPath = `uploads/outputs/${req.path.split('/').pop()}`;
+                const history = await this.historyController.findByOutputPath(outputPath);
+                if (history.outputType === ModelOutputType.HTML) {
+                    res.type('text/html');
+                }
+            } catch (e) {
+                /* empty */
+            }
+            next();
+        }, express.static('uploads/outputs'));
         app.use(express.json());
         app.use(session({
             resave: false,
