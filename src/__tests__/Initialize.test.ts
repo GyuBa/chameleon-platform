@@ -221,6 +221,19 @@ const exampleParameters = {
         'elements': [{'type': 'Control', 'scope': '#/properties/name'}]
     }, 'schema': {'type': 'object', 'properties': {'name': {'type': 'string'}}}, 'data': {}
 };
+
+const emptyParameters = {
+    schema: {
+        "type": "object",
+        "properties": {}
+    },
+    uischema: {
+        "type": "VerticalLayout",
+        "elements": []
+    },
+    data: {}
+};
+
 describe('Initialize System', () => {
     beforeAll(async () => {
         await TestingManager.init();
@@ -430,7 +443,6 @@ describe('Initialize System', () => {
                 price: 0
             });
 
-
             await PlatformAPI.executeModel({
                 modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test3', 'sound-output-model')).id,
                 parameters: exampleParameters.data,
@@ -518,7 +530,7 @@ describe('Initialize System', () => {
                     inputType: dummy.inputType,
                     outputType: dummy.outputType,
                     category: dummy.category,
-                    parameters: {uischema: {}, schema: {}, data: {}},
+                    parameters: emptyParameters,
                     file: (await PlatformAPI.instance.get(`http://files.chameleon.best/images/simple-output-${dummy.outputType}.tar`, {
                         responseType: 'stream'
                     })).data,
