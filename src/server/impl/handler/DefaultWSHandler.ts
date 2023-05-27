@@ -26,7 +26,9 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
             const historyMainSocket = PlatformServer.socketServer.manager.getHistoryMainSocket(history);
             const resizeOptions = {rows: data.rows > 0 ? data.rows : 1, cols: data.cols > 0 ? data.cols : 1};
             console.log(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
-            PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, [historyMainSocket]);
+            if (historyMainSocket) {
+                PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, [historyMainSocket]);
+            }
         };
     }
 
