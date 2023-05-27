@@ -537,7 +537,7 @@ describe('Initialize System', () => {
             modelName: 'Image Captioning',
             description: '# Image Captioning \n\n 이미지를 묘사하는 텍스트를 생성하는 모델입니다',
             inputType: ModelInputType.IMAGE,
-            outputType: ModelOutputType.IMAGE,
+            outputType: ModelOutputType.TEXT,
             category: 'Image Processing',
             parameters: {uischema: {}, data: {}, schema: {}},
             file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/image-captioning.tar', {
