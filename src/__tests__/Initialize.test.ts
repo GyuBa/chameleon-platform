@@ -34,185 +34,185 @@ dummyRegion.port = mainRegion.port;
 dummyRegion.cacheSize = mainRegion.cacheSize;
 
 const dummies = [{
-    modelName: "Text Summarization",
-    description: "# Text Summarization \n\n 이 모델은 BERT 기반으로 긴 텍스트를 짧게 요약하는 인공지능 모델입니다.",
+    modelName: 'Text Summarization',
+    description: '# Text Summarization \n\n 이 모델은 BERT 기반으로 긴 텍스트를 짧게 요약하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Image Classification",
-    description: "# Image Classification \n\n 이 모델은 Convolutional Neural Network를 사용하여 이미지를 분류하는 인공지능 모델입니다.",
+    modelName: 'Image Classification',
+    description: '# Image Classification \n\n 이 모델은 Convolutional Neural Network를 사용하여 이미지를 분류하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.TEXT,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Speech Recognition",
-    description: "# Speech Recognition \n\n 이 모델은 음성을 텍스트로 변환하는 인공지능 모델입니다.",
+    modelName: 'Speech Recognition',
+    description: '# Speech Recognition \n\n 이 모델은 음성을 텍스트로 변환하는 인공지능 모델입니다.',
     inputType: ModelInputType.SOUND,
     outputType: ModelOutputType.TEXT,
-    category: "Speech Processing"
+    category: 'Speech Processing'
 }, {
-    modelName: "Video Object Detection",
-    description: "# Video Object Detection \n\n 이 모델은 YOLO 알고리즘을 이용하여 비디오에서 객체를 탐지하는 인공지능 모델입니다.",
+    modelName: 'Video Object Detection',
+    description: '# Video Object Detection \n\n 이 모델은 YOLO 알고리즘을 이용하여 비디오에서 객체를 탐지하는 인공지능 모델입니다.',
     inputType: ModelInputType.VIDEO,
     outputType: ModelOutputType.VIDEO,
-    category: "Video Processing"
+    category: 'Video Processing'
 }, {
-    modelName: "Image Colorization",
-    description: "# Image Colorization \n\n 이 모델은 흑백 이미지를 컬러로 변환하는 인공지능 모델입니다.",
+    modelName: 'Image Colorization',
+    description: '# Image Colorization \n\n 이 모델은 흑백 이미지를 컬러로 변환하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.IMAGE,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Sentiment Analysis",
-    description: "# Sentiment Analysis \n\n 이 모델은 텍스트에서 감정을 분석하는 인공지능 모델입니다.",
+    modelName: 'Sentiment Analysis',
+    description: '# Sentiment Analysis \n\n 이 모델은 텍스트에서 감정을 분석하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Sound Generation",
-    description: "# Sound Generation \n\n 이 모델은 텍스트를 소리로 변환하는 인공지능 모델입니다.",
+    modelName: 'Sound Generation',
+    description: '# Sound Generation \n\n 이 모델은 텍스트를 소리로 변환하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.SOUND,
-    category: "Speech Processing"
+    category: 'Speech Processing'
 }, {
-    modelName: "Pose Estimation",
-    description: "# Pose Estimation \n\n 이 모델은 이미지 또는 비디오에서 인간의 자세를 추정하는 인공지능 모델입니다.",
+    modelName: 'Pose Estimation',
+    description: '# Pose Estimation \n\n 이 모델은 이미지 또는 비디오에서 인간의 자세를 추정하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.IMAGE,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Music Generation",
-    description: "# Music Generation \n\n 이 모델은 인공지능을 이용해 새로운 음악을 생성합니다.",
+    modelName: 'Music Generation',
+    description: '# Music Generation \n\n 이 모델은 인공지능을 이용해 새로운 음악을 생성합니다.',
     inputType: ModelInputType.EMPTY,
     outputType: ModelOutputType.SOUND,
-    category: "Sound Processing"
+    category: 'Sound Processing'
 }, {
-    modelName: "Chatbot",
-    description: "# Chatbot \n\n 이 모델은 사용자의 질문에 대해 자연스러운 답변을 생성하는 인공지능 모델입니다.",
+    modelName: 'Chatbot',
+    description: '# Chatbot \n\n 이 모델은 사용자의 질문에 대해 자연스러운 답변을 생성하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Image Compression",
-    description: "# Image Compression \n\n 이 모델은 이미지를 효과적으로 압축하는 인공지능 모델입니다.",
+    modelName: 'Image Compression',
+    description: '# Image Compression \n\n 이 모델은 이미지를 효과적으로 압축하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.BINARY,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Speech-to-Text",
-    description: "# Speech-to-Text \n\n 이 모델은 오디오 스피치를 텍스트로 변환하는 인공지능 모델입니다.",
+    modelName: 'Speech-to-Text',
+    description: '# Speech-to-Text \n\n 이 모델은 오디오 스피치를 텍스트로 변환하는 인공지능 모델입니다.',
     inputType: ModelInputType.SOUND,
     outputType: ModelOutputType.TEXT,
-    category: "Speech Processing"
+    category: 'Speech Processing'
 }, {
-    modelName: "Object Segmentation",
-    description: "# Object Segmentation \n\n 이 모델은 이미지에서 개체를 분할하고 분류하는 인공지능 모델입니다.",
+    modelName: 'Object Segmentation',
+    description: '# Object Segmentation \n\n 이 모델은 이미지에서 개체를 분할하고 분류하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.IMAGE,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Text-to-Speech",
-    description: "# Text-to-Speech \n\n 이 모델은 텍스트를 사람처럼 말하는 소리로 변환하는 인공지능 모델입니다.",
+    modelName: 'Text-to-Speech',
+    description: '# Text-to-Speech \n\n 이 모델은 텍스트를 사람처럼 말하는 소리로 변환하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.SOUND,
-    category: "Speech Processing"
+    category: 'Speech Processing'
 }, {
-    modelName: "Facial Recognition",
-    description: "# Facial Recognition \n\n 이 모델은 사진이나 비디오에서 얼굴을 인식하는 인공지능 모델입니다.",
+    modelName: 'Facial Recognition',
+    description: '# Facial Recognition \n\n 이 모델은 사진이나 비디오에서 얼굴을 인식하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.TEXT,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Machine Translation",
-    description: "# Machine Translation \n\n 이 모델은 한 언어의 텍스트를 다른 언어로 번역하는 인공지능 모델입니다.",
+    modelName: 'Machine Translation',
+    description: '# Machine Translation \n\n 이 모델은 한 언어의 텍스트를 다른 언어로 번역하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Handwriting Recognition",
-    description: "# Handwriting Recognition \n\n 이 모델은 손글씨 텍스트를 디지털 텍스트로 변환하는 인공지능 모델입니다.",
+    modelName: 'Handwriting Recognition',
+    description: '# Handwriting Recognition \n\n 이 모델은 손글씨 텍스트를 디지털 텍스트로 변환하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.TEXT,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Voice Cloning",
-    description: "# Voice Cloning \n\n 이 모델은 주어진 음성 샘플로부터 음성을 복제하는 인공지능 모델입니다.",
+    modelName: 'Voice Cloning',
+    description: '# Voice Cloning \n\n 이 모델은 주어진 음성 샘플로부터 음성을 복제하는 인공지능 모델입니다.',
     inputType: ModelInputType.SOUND,
     outputType: ModelOutputType.SOUND,
-    category: "Speech Processing"
+    category: 'Speech Processing'
 }, {
-    modelName: "Keyword Extraction",
-    description: "# Keyword Extraction \n\n 이 모델은 주어진 텍스트에서 핵심 키워드를 추출하는 인공지능 모델입니다.",
+    modelName: 'Keyword Extraction',
+    description: '# Keyword Extraction \n\n 이 모델은 주어진 텍스트에서 핵심 키워드를 추출하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Optical Character Recognition",
-    description: "# Optical Character Recognition \n\n 이 모델은 이미지에서 텍스트를 인식하여 디지털 텍스트로 변환하는 인공지능 모델입니다.",
+    modelName: 'Optical Character Recognition',
+    description: '# Optical Character Recognition \n\n 이 모델은 이미지에서 텍스트를 인식하여 디지털 텍스트로 변환하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.TEXT,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Video Frame Interpolation",
-    description: "# Video Frame Interpolation \n\n 이 모델은 비디오 프레임 사이를 채워서 비디오의 부드러움을 높이는 인공지능 모델입니다.",
+    modelName: 'Video Frame Interpolation',
+    description: '# Video Frame Interpolation \n\n 이 모델은 비디오 프레임 사이를 채워서 비디오의 부드러움을 높이는 인공지능 모델입니다.',
     inputType: ModelInputType.VIDEO,
     outputType: ModelOutputType.VIDEO,
-    category: "Video Processing"
+    category: 'Video Processing'
 }, {
-    modelName: "Topic Modelling",
-    description: "# Topic Modelling \n\n 이 모델은 주어진 텍스트의 주제를 분석하고 분류하는 인공지능 모델입니다.",
+    modelName: 'Topic Modelling',
+    description: '# Topic Modelling \n\n 이 모델은 주어진 텍스트의 주제를 분석하고 분류하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Image Style Transfer",
-    description: "# Image Style Transfer \n\n 이 모델은 한 이미지의 스타일을 다른 이미지로 전송하는 인공지능 모델입니다.",
+    modelName: 'Image Style Transfer',
+    description: '# Image Style Transfer \n\n 이 모델은 한 이미지의 스타일을 다른 이미지로 전송하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.IMAGE,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Emotion Detection",
-    description: "# Emotion Detection \n\n 이 모델은 텍스트나 음성에서 감정을 판단하는 인공지능 모델입니다.",
+    modelName: 'Emotion Detection',
+    description: '# Emotion Detection \n\n 이 모델은 텍스트나 음성에서 감정을 판단하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Image Deblurring",
-    description: "# Image Deblurring \n\n 이 모델은 이미지에서 흐림을 제거하는 인공지능 모델입니다.",
+    modelName: 'Image Deblurring',
+    description: '# Image Deblurring \n\n 이 모델은 이미지에서 흐림을 제거하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.IMAGE,
-    category: "Image Processing"
+    category: 'Image Processing'
 }, {
-    modelName: "Audio Noise Reduction",
-    description: "# Audio Noise Reduction \n\n 이 모델은 오디오에서 노이즈를 제거하는 인공지능 모델입니다.",
+    modelName: 'Audio Noise Reduction',
+    description: '# Audio Noise Reduction \n\n 이 모델은 오디오에서 노이즈를 제거하는 인공지능 모델입니다.',
     inputType: ModelInputType.SOUND,
     outputType: ModelOutputType.SOUND,
-    category: "Sound Processing"
+    category: 'Sound Processing'
 }, {
-    modelName: "Automatic Captioning",
-    description: "# Automatic Captioning \n\n 이 모델은 이미지 또는 비디오에 대한 캡션을 자동으로 생성하는 인공지능 모델입니다.",
+    modelName: 'Automatic Captioning',
+    description: '# Automatic Captioning \n\n 이 모델은 이미지 또는 비디오에 대한 캡션을 자동으로 생성하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.TEXT,
-    category: "Multimedia Processing"
+    category: 'Multimedia Processing'
 }, {
-    modelName: "Document Layout Analysis",
-    description: "# Document Layout Analysis \n\n 이 모델은 문서의 레이아웃을 분석하여 텍스트, 이미지, 표 등의 위치를 파악하는 인공지능 모델입니다.",
+    modelName: 'Document Layout Analysis',
+    description: '# Document Layout Analysis \n\n 이 모델은 문서의 레이아웃을 분석하여 텍스트, 이미지, 표 등의 위치를 파악하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.TEXT,
-    category: "Document Processing"
+    category: 'Document Processing'
 }, {
-    modelName: "Text Generation",
-    description: "# Text Generation \n\n 이 모델은 주어진 텍스트에 이어질 새로운 텍스트를 생성하는 인공지능 모델입니다.",
+    modelName: 'Text Generation',
+    description: '# Text Generation \n\n 이 모델은 주어진 텍스트에 이어질 새로운 텍스트를 생성하는 인공지능 모델입니다.',
     inputType: ModelInputType.TEXT,
     outputType: ModelOutputType.TEXT,
-    category: "Natural Language Processing"
+    category: 'Natural Language Processing'
 }, {
-    modelName: "Scene Recognition",
-    description: "# Scene Recognition \n\n 이 모델은 이미지나 비디오의 씬을 인식하고 분류하는 인공지능 모델입니다.",
+    modelName: 'Scene Recognition',
+    description: '# Scene Recognition \n\n 이 모델은 이미지나 비디오의 씬을 인식하고 분류하는 인공지능 모델입니다.',
     inputType: ModelInputType.IMAGE,
     outputType: ModelOutputType.TEXT,
-    category: "Image Processing"
+    category: 'Image Processing'
 }
 ];
 const exampleParameters = {
@@ -530,8 +530,109 @@ describe('Initialize System', () => {
             fail(e.response.data);
         }
 
-        console.log('Creating test7:image-captioning');
+        console.log('Creating test7:sound-modulation');
+
         await PlatformAPI.signIn('test7@test.com', 'test');
+        await PlatformAPI.uploadModelWithImage({
+            regionName: mainRegion.name,
+            modelName: 'Sound Modulation',
+            description: '# Sound Modulation\n' +
+                '\n' +
+                'A model that modulates the `voice` by adjusting the `equalizer` of the voice.\n' +
+                '\n' +
+                '- pitch`-1000~1000`\n' +
+                '\n' +
+                '  Change the audio pitch (but not tempo).\n' +
+                '\n' +
+                '  *shift* gives the pitch shift as positive or negative `cents` (i.e. 100ths of a semitone). \n' +
+                '\n' +
+                '- contrast `0~100`\n' +
+                '\n' +
+                '  Comparable with compression, this effect modifies an audio signal to make it sound louder. *enhancement-amount* controls the amount of the enhancement and is a number in the range 0−100. Note that *enhancement-amount* = 0 still gives a significant contrast enhancement.\n' +
+                '\n' +
+                '  See also the **compand** and **mcompand** effects.\n' +
+                '\n' +
+                '- echo `boolean`\n' +
+                '\n' +
+                '  apply echo options\n' +
+                '\n' +
+                '  ```json\n' +
+                '  {\n' +
+                '      gain_in : 0,\n' +
+                '     gain_out : 1,\n' +
+                '     delay : 20,\n' +
+                '     decay : 0.4\n' +
+                '  }\n' +
+                '  ```',
+            inputType: ModelInputType.SOUND,
+            outputType: ModelOutputType.SOUND,
+            category: 'Sound Processing',
+            parameters: {
+                'data': {
+                    'echo': true,
+                    'pitch': 500,
+                    'preset': 'old',
+                    'contrast': 100
+                },
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'echo': {
+                            'type': 'boolean',
+                            'default': true
+                        },
+                        'pitch': {
+                            'type': 'number',
+                            'default': 500,
+                            'minimum': -1000
+                        },
+                        'preset': {
+                            'enum': [
+                                'old',
+                                'adult',
+                                'child',
+                                'custom'
+                            ],
+                            'type': 'string',
+                            'default': 'old'
+                        },
+                        'contrast': {
+                            'type': 'number',
+                            'default': 100,
+                            'maximum': 100,
+                            'minimum': 0
+                        }
+                    }
+                },
+                'uischema': {
+                    'type': 'VerticalLayout',
+                    'elements': [
+                        {
+                            'type': 'Control',
+                            'scope': '#/properties/preset'
+                        },
+                        {
+                            'type': 'Control',
+                            'scope': '#/properties/pitch'
+                        },
+                        {
+                            'type': 'Control',
+                            'scope': '#/properties/contrast'
+                        },
+                        {
+                            'type': 'Control',
+                            'scope': '#/properties/echo'
+                        }
+                    ]
+                }
+            },
+            file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/sound-modulation.tar', {
+                responseType: 'stream'
+            })).data
+        });
+
+        console.log('Creating test8:image-captioning');
+        await PlatformAPI.signIn('test8@test.com', 'test');
         await PlatformAPI.uploadModelWithImage({
             regionName: mainRegion.name,
             modelName: 'Image Captioning',
