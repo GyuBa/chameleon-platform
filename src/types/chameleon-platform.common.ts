@@ -175,7 +175,7 @@ export enum ModelOutputType {
     VIDEO = 'video',
     SOUND = 'sound',
     TEXT = 'text',
-    ZIP = 'zip',
+    ZIP_GALLERY = 'zip-gallery',
     BINARY = 'binary'
 }
 
