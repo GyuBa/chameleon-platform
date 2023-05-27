@@ -4,10 +4,7 @@ import {HTTPService} from '../interfaces/http/HTTPService';
 import {Server} from 'http';
 import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 import {PointHistoryType, ResponseData} from '../../types/chameleon-platform.common';
-import axios from 'axios';
 import {PaymentAPI} from '../../platform/PaymentAPI';
-import {PlatformAPI} from '../../platform/PlatformAPI';
-import {PlatformService} from '../interfaces/PlatformService';
 import PlatformServer from '../../server/core/PlatformServer';
 import {User} from '../../entities/User';
 import {PointHistory} from '../../entities/PointHistory';
@@ -18,6 +15,7 @@ export class PointService extends HTTPService {
         const router = express.Router();
         router.get('/my', HTTPLogUtils.addBeginLogger(this.handleMy, '/points/my'));
         router.post('/charge', HTTPLogUtils.addBeginLogger(this.handleCharge, '/points/charge'));
+        router.post('/earned', HTTPLogUtils.addBeginLogger(this.handleGetEarnedPointHistories, '/points/earned'));
         router.post('/', HTTPLogUtils.addBeginLogger(this.handleGetPointHistories, '/'));
         app.use('/points', router);
     }
@@ -53,5 +51,12 @@ export class PointService extends HTTPService {
         const user = req.user as User;
         const pointHistories = await this.pointHistoryController.findAllByUserId(user.id);
         return res.status(200).send(pointHistories.map(p => p.toData()));
+    }
+
+    async handleGetEarnedPointHistories(req: Request, res: Response, next: Function) {
+        if (!req.isAuthenticated()) return res.status(501).send({msg: 'not_authenticated_error'} as ResponseData);
+        const user = req.user as User;
+        const earnedPointHistories = await this.earnedPointHistoryController.findAllByUserId(user.id);
+        return res.status(200).send(earnedPointHistories.map(p => p.toData()));
     }
 }

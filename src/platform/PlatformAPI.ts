@@ -1,5 +1,6 @@
 import axios, {AxiosInstance} from 'axios';
 import {
+    EarnedPointHistoryEntityData,
     HistoriesRequestOptions,
     HistoryEntityData,
     ModelDockerfileUploadData,
@@ -122,6 +123,11 @@ export class PlatformAPI {
 
     public static async getPointsHistories(): Promise<PointHistoryEntityData[]> {
         const response = await this.instance.post('/points', this.defaultConfig);
+        return response?.data;
+    }
+
+    public static async getEarnedPointsHistories(): Promise<EarnedPointHistoryEntityData[]> {
+        const response = await this.instance.post('/points/earned', this.defaultConfig);
         return response?.data;
     }
 

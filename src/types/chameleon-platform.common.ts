@@ -1,4 +1,5 @@
 /* EntityData & Keys */
+
 export interface HistoryEntityData {
     id: number;
     createdTime: Date;
@@ -121,18 +122,20 @@ export interface UserEntityData {
     email: string;
     username: string;
     point: number;
+    earnedPoint: number;
 }
 
 export const User: Array<keyof UserEntityData> = [
     'id',
     'email',
     'username',
-    'point'
+    'point',
+    'earnedPoint'
 ];
 
 export interface PointHistoryEntityData {
     id: number;
-    createdTime: Date
+    createdTime: Date;
     user: UserEntityData;
     modelHistory?: HistoryEntityData;
     type: PointHistoryType;
@@ -142,13 +145,26 @@ export interface PointHistoryEntityData {
 
 export const PointHistory: Array<keyof PointHistoryEntityData> = ['id', 'createdTime', 'user', 'modelHistory', 'type', 'delta', 'leftPoint'];
 
+export interface EarnedPointHistoryEntityData {
+    id: number;
+    createdTime: Date;
+    user: UserEntityData;
+    executor: UserEntityData;
+    model: ModelEntityData;
+    delta: number;
+    leftEarnedPoint: number;
+}
+
+export const EarnedPointHistory: Array<keyof EarnedPointHistoryEntityData> = ['id', 'createdTime', 'user', 'executor', 'model', 'delta', 'leftEarnedPoint'];
+
 export const ENTITY_DATA_KEYS = {
     History,
     Image,
     Model,
     Region,
     User,
-    PointHistory
+    PointHistory,
+    EarnedPointHistory
 };
 
 /* Enums */

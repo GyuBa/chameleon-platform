@@ -11,8 +11,9 @@ describe('Login', () => {
     test('get point history', async () => {
         try {
             const result = await PlatformAPI.getPointsHistories();
-            console.log(result);
-
+            const earnedResult = await PlatformAPI.getEarnedPointsHistories();
+            console.log(result.length);
+            console.log(earnedResult);
         } catch (e) {
             console.error(e?.response?.data);
         }

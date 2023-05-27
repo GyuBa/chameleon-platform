@@ -22,6 +22,7 @@ import {DateUtils} from '../../../utils/DateUtils';
 import {MulterUtils} from '../../../utils/MulterUtils';
 import {Model} from '../../../entities/Model';
 import {PointHistory} from "../../../entities/PointHistory";
+import {EarnedPointHistory} from "../../../entities/EarnedPointHistory";
 
 export default class DefaultSocketHandler extends PlatformService implements SocketHandler<DefaultSocketServer, DefaultSocket> {
     readonly handles: { [messageType: string]: SocketHandle } = {};
@@ -94,12 +95,14 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     }, parent: history
                 });
 
-                if (model.price > 0) {
+                if (model.price > 0 && model.register.id !== history.executor.id) {
                     if (history.executor.point - model.price < 0) {
                         server.manager.sendExit(1, 'Not enough points to use.', [socket]);
                         return;
                     }
                     history.executor.point -= model.price;
+                    history.model.register.earnedPoint += model.price;
+
                     const pointHistory = new PointHistory();
                     pointHistory.delta = -model.price;
                     pointHistory.leftPoint = history.executor.point;
@@ -107,8 +110,18 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     pointHistory.type = PointHistoryType.USE_PAID_MODEL;
                     pointHistory.modelHistory = history;
                     await this.pointHistoryController.save(pointHistory);
+
+                    const earnedPointHistory = new EarnedPointHistory();
+                    earnedPointHistory.delta = model.price;
+                    earnedPointHistory.leftEarnedPoint = history.model.register.earnedPoint;
+                    earnedPointHistory.model = history.model;
+                    earnedPointHistory.user = history.model.register;
+                    earnedPointHistory.executor = history.executor;
+                    await this.earnedPointHistoryController.save(earnedPointHistory);
+
+                    await this.userController.save(history.executor);
+                    await this.userController.save(history.model.register);
                 }
-                await this.userController.save(history.executor);
 
                 console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id} Sub) ExecutedHistory: ${socket.data.executedHistory.id}, NumberOfParents: ${socket.data.executedHistory.numberOfParents}`);
             }

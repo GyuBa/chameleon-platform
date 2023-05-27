@@ -8,6 +8,8 @@ import {SessionController} from '../../controller/SessionController';
 import {HistoryController} from '../../controller/HistoryController';
 import {ModelExecutionManager} from "../manager/ModelExecutionManager";
 import {PointHistoryController} from "../../controller/PointHistoryController";
+import {EarnedPointHistory} from "../../entities/EarnedPointHistory";
+import {EarnedPointHistoryController} from "../../controller/EarnedPointHistoryController";
 
 
 export class PlatformService {
@@ -48,6 +50,10 @@ export class PlatformService {
         return PlatformService.getController(PointHistoryController);
     }
 
+    public get earnedPointHistoryController(): EarnedPointHistoryController {
+        return PlatformService.getController(EarnedPointHistoryController);
+    }
+
     public get modelExecutionManager(): ModelExecutionManager {
         return PlatformService.getController(ModelExecutionManager);
     }
@@ -62,6 +68,7 @@ export class PlatformService {
         this.staticMap.set(WalletController, new WalletController(source));
         this.staticMap.set(HistoryController, new HistoryController(source));
         this.staticMap.set(PointHistoryController, new PointHistoryController(source));
+        this.staticMap.set(EarnedPointHistoryController, new EarnedPointHistoryController(source));
         this.staticMap.set(ModelExecutionManager, new ModelExecutionManager(this.thisService));
     }
 

@@ -15,6 +15,7 @@ import {HistoryStatus, ModelSearchOption, PointHistoryType, ResponseData} from '
 import * as fs from 'fs';
 import {DateUtils} from '../../utils/DateUtils';
 import {PointHistory} from "../../entities/PointHistory";
+import {EarnedPointHistory} from "../../entities/EarnedPointHistory";
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -71,7 +72,7 @@ export class ModelService extends HTTPService {
                     fileSize: file.size
                 }
             });
-            if (model.price > 0) {
+            if (model.price > 0 && model.register.id !== history.executor.id) {
                 if (executor.point - model.price < 0) {
                     return res.status(401).send({
                         msg: 'wrong_permission_error',
@@ -79,6 +80,8 @@ export class ModelService extends HTTPService {
                     } as ResponseData);
                 }
                 executor.point -= model.price;
+                history.model.register.earnedPoint += model.price;
+
                 const pointHistory = new PointHistory();
                 pointHistory.delta = -model.price;
                 pointHistory.leftPoint = executor.point;
@@ -86,8 +89,18 @@ export class ModelService extends HTTPService {
                 pointHistory.type = PointHistoryType.USE_PAID_MODEL;
                 pointHistory.modelHistory = history;
                 await this.pointHistoryController.save(pointHistory);
+
+                const earnedPointHistory = new EarnedPointHistory();
+                earnedPointHistory.delta = model.price;
+                earnedPointHistory.leftEarnedPoint = history.model.register.earnedPoint;
+                earnedPointHistory.model = history.model;
+                earnedPointHistory.user = history.model.register;
+                earnedPointHistory.executor = history.executor;
+                await this.earnedPointHistoryController.save(earnedPointHistory);
+
+                await this.userController.save(executor);
+                await this.userController.save(history.model.register);
             }
-            await this.userController.save(executor);
         });
 
         return res.status(200).send({msg: 'ok'});
@@ -194,6 +207,11 @@ export class ModelService extends HTTPService {
             await Promise.all(notCachedHistories.map(h => {
                 h.model = null;
                 return this.historyController.save(h);
+            }));
+            const earnedHistories = await this.earnedPointHistoryController.findAllByModelId(model.id);
+            await Promise.all(earnedHistories.map(h => {
+                h.model = null;
+                return this.earnedPointHistoryController.save(h);
             }));
             await this.modelController.deleteById(model.id);
             this.containerCachingLock.delete(model.id);

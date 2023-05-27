@@ -14,4 +14,7 @@ export class User extends Common {
 
     @Column({default: 0})
         point: number;
+
+    @Column({default: 0})
+        earnedPoint: number;
 }
