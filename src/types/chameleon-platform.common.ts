@@ -182,7 +182,7 @@ export enum ModelInputType {
     VIDEO = 'video',
     SOUND = 'sound',
     TEXT = 'text',
-    ZIP = 'zip',
+    FILES = 'files',
     BINARY = 'binary'
 }
 
