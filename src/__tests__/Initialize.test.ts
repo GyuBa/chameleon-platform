@@ -513,7 +513,7 @@ describe('Initialize System', () => {
             });
 
             await PlatformAPI.executeModel({
-                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test6', 'zip-input-model')).id,
+                modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test6', 'files-input-model')).id,
                 parameters: exampleParameters.data,
                 input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/text.txt', {
                     responseType: 'stream'
