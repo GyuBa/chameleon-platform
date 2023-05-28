@@ -545,10 +545,10 @@ describe('Initialize System', () => {
                 description: '# Sound Modulation\n' +
                     '이 모델은 `equalizer`를 이용하여 음성을 변조합니다.\n' +
                     '\n' +
-                    '- `pitch` (-1000~1000)\n' +
+                    '- `pitch` (-1000\\~1000)\n' +
                     '  음성의 `pitch`를 조절합니다.(템포 변경이 아님)\n' +
                     '\n' +
-                    '- `contrast`(0~100)\n' +
+                    '- `contrast`(0\\~100)\n' +
                     '  이 효과는 압축과 유사하게 동작하며, 오디오 신호를 더 크게 들리게 수정합니다. 수치는 0~100 범위로 0은 대비량을 극대화 시킵니다.\n' +
                     '  \n' +
                     '- `echo` (boolean)\n' +
