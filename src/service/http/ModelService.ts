@@ -294,7 +294,31 @@ export class ModelService extends HTTPService {
             // Dockerfile
             const files = req.files as Express.Multer.File[];
             const context = files[0].destination;
-            await docker.buildImage({context, src: files.map(f => f.originalname)}, {t: `${username}:${imageTag}`});
+            await new Promise((resolve, reject) => {
+                docker.buildImage({
+                    context,
+                    src: files.map(f => f.originalname)
+                }, {t: `${username}:${imageTag}`}, (error, response) => {
+                    if (error) {
+                        console.error(error);
+                        reject(error);
+                    }
+                    response.on('error', function (err) {
+                        reject(err);
+                    });
+                    let buffer = '';
+                    response.on('data', function (data) {
+                        try {
+                            const event = JSON.parse(buffer + data.toString());
+                            if (event && event?.stream === `Successfully tagged ${username}:${imageTag}\n`) {
+                                resolve(0);
+                            }
+                        } catch (e) {
+                            buffer += data.toString();
+                        }
+                    });
+                });
+            });
             image.path = context.replace(/\\/g, '/');
         } else if (PlatformServer.config.debugMode && imageName) {
             const targetImage = await docker.getImage(imageName);
