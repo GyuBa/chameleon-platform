@@ -14,8 +14,9 @@ import {HTTPLogUtils} from '../../utils/HTTPLogUtils';
 import {HistoryStatus, ModelSearchOption, PointHistoryType, ResponseData} from '../../types/chameleon-platform.common';
 import * as fs from 'fs';
 import {DateUtils} from '../../utils/DateUtils';
-import {PointHistory} from "../../entities/PointHistory";
-import {EarnedPointHistory} from "../../entities/EarnedPointHistory";
+import {PointHistory} from '../../entities/PointHistory';
+import {EarnedPointHistory} from '../../entities/EarnedPointHistory';
+import PlatformServer from '../../server/core/PlatformServer';
 
 const images = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/images'});
 const inputs = multer({fileFilter: MulterUtils.fixNameEncoding, dest: 'uploads/inputs'});
@@ -64,15 +65,10 @@ export class ModelService extends HTTPService {
         } as ResponseData);
 
         const file = req.file;
+        const pointHistory = new PointHistory();
         setTimeout(async () => {
-            const history = await this.modelExecutionManager.executeModel(model, {
-                parameters, executor, inputPath: file.path, inputInfo: {
-                    fileName: file.originalname,
-                    mimeType: file.mimetype,
-                    fileSize: file.size
-                }
-            });
-            if (model.price > 0 && model.register.id !== history.executor.id) {
+            const isPaidCase = model.price > 0 && model.register.id !== executor.id;
+            if (isPaidCase) {
                 if (executor.point - model.price < 0) {
                     return res.status(401).send({
                         msg: 'wrong_permission_error',
@@ -80,26 +76,34 @@ export class ModelService extends HTTPService {
                     } as ResponseData);
                 }
                 executor.point -= model.price;
-                history.model.register.earnedPoint += model.price;
+                model.register.earnedPoint += model.price;
 
-                const pointHistory = new PointHistory();
                 pointHistory.delta = -model.price;
                 pointHistory.leftPoint = executor.point;
                 pointHistory.user = executor;
                 pointHistory.type = PointHistoryType.USE_PAID_MODEL;
-                pointHistory.modelHistory = history;
-                await this.pointHistoryController.save(pointHistory);
 
                 const earnedPointHistory = new EarnedPointHistory();
                 earnedPointHistory.delta = model.price;
-                earnedPointHistory.leftEarnedPoint = history.model.register.earnedPoint;
-                earnedPointHistory.model = history.model;
-                earnedPointHistory.user = history.model.register;
-                earnedPointHistory.executor = history.executor;
+                earnedPointHistory.leftEarnedPoint = model.register.earnedPoint;
+                earnedPointHistory.model = model;
+                earnedPointHistory.user = model.register;
+                earnedPointHistory.executor = executor;
                 await this.earnedPointHistoryController.save(earnedPointHistory);
 
                 await this.userController.save(executor);
-                await this.userController.save(history.model.register);
+                await this.userController.save(model.register);
+            }
+            const history = await this.modelExecutionManager.executeModel(model, {
+                parameters, executor, inputPath: file.path, inputInfo: {
+                    fileName: file.originalname,
+                    mimeType: file.mimetype,
+                    fileSize: file.size
+                }
+            });
+            if (isPaidCase) {
+                pointHistory.modelHistory = history;
+                await this.pointHistoryController.save(pointHistory);
             }
         });
 
@@ -197,8 +201,8 @@ export class ModelService extends HTTPService {
             const cachedContainers = await Promise.all(cachedHistories.map(h => docker.getContainer(h.containerId)));
             await Promise.all(cachedContainers.map(c => c.remove()));
             try {
-                const dockerImage = await docker.getImage(image.uniqueId);
-                await dockerImage.remove({force: true});
+                const dockerImage = await docker.getImage(`${image.repository}:${image.tag}`);
+                await dockerImage.remove();
             } catch (e) {
                 console.error(e);
             }
@@ -257,9 +261,11 @@ export class ModelService extends HTTPService {
             outputType,
             parameters,
             price: rawPrice,
-            category: rawCategory
+            category: rawCategory,
+            cacheSize: rawCacheSize,
+            imageName
         } = req.body;
-        if (!(regionName && modelName && description && inputType && outputType && (req.files || req.file) && parameters)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
+        if (!(regionName && modelName && description && inputType && outputType && (req.files || req.file || (PlatformServer.config.debugMode && imageName)) && parameters)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
         if (!(req.isAuthenticated())) return res.status(501).send({msg: 'not_authenticated_error'} as ResponseData);
 
         const region: Region = await this.regionController.findByName(regionName);
@@ -290,6 +296,10 @@ export class ModelService extends HTTPService {
             const context = files[0].destination;
             await docker.buildImage({context, src: files.map(f => f.originalname)}, {t: `${username}:${imageTag}`});
             image.path = context.replace(/\\/g, '/');
+        } else if (PlatformServer.config.debugMode && imageName) {
+            const targetImage = await docker.getImage(imageName);
+            await targetImage.tag({repo: username, tag: imageTag});
+            image.path = 'debug';
         } else {
             return res.status(501).send({msg: 'wrong_information_error', reason: 'Wrong upload type.'} as ResponseData);
         }
@@ -305,6 +315,13 @@ export class ModelService extends HTTPService {
             model.price = parseInt(rawPrice);
             model.price = model.price < 0 ? 0 : model.price;
         }
+
+        if (rawCacheSize && !Number.isNaN(rawCacheSize)) {
+            model.cacheSize = parseInt(rawCacheSize);
+        } else {
+            model.cacheSize = region.cacheSize;
+        }
+
         if (rawCategory) {
             model.category = rawCategory;
         }
@@ -313,7 +330,7 @@ export class ModelService extends HTTPService {
         model.inputType = inputType;
         model.outputType = outputType;
         model.image = await this.imageController.save(image);
-        model.cacheSize = region.cacheSize;
+
         model.config = {
             paths: {
                 script: '/opt/mctr/run',

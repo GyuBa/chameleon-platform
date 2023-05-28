@@ -28,10 +28,10 @@ subRegion.port = initConfig.subRegion.port;
 subRegion.cacheSize = initConfig.subRegion.cacheSize;
 
 const dummyRegion = new Region();
-dummyRegion.name = 'dummy';
-dummyRegion.host = mainRegion.host;
-dummyRegion.port = mainRegion.port;
-dummyRegion.cacheSize = mainRegion.cacheSize;
+dummyRegion.name = initConfig.dummyRegion.name;
+dummyRegion.host = initConfig.dummyRegion.host;
+dummyRegion.port = initConfig.dummyRegion.port;
+dummyRegion.cacheSize = initConfig.dummyRegion.cacheSize;
 
 const dummies = [{
     modelName: 'Text Summarization',
@@ -224,12 +224,12 @@ const exampleParameters = {
 
 const emptyParameters = {
     schema: {
-        "type": "object",
-        "properties": {}
+        'type': 'object',
+        'properties': {}
     },
     uischema: {
-        "type": "VerticalLayout",
-        "elements": []
+        'type': 'VerticalLayout',
+        'elements': []
     },
     data: {}
 };
@@ -260,7 +260,7 @@ describe('Initialize System', () => {
         const models = await modelController.getAll();
         for (const model of models) {
             const docker = new Dockerode(model.image.region);
-            const image = await docker.getImage(model.image.uniqueId);
+            const image = await docker.getImage(model.image.getRepositoryTagString());
             const containers = await docker.listContainers({all: true});
             const relatedContainers = containers.filter(c => c.ImageID === model.image.uniqueId);
             for (const containerInfo of relatedContainers) {
@@ -537,115 +537,426 @@ describe('Initialize System', () => {
                     price: Math.floor(Math.random() * 1000 + 100)
                 });
             }
+            console.log('Creating test7:sound-modulation');
+            await PlatformAPI.signIn('test7@test.com', 'test');
+            await PlatformAPI.uploadModelWithImage({
+                regionName: mainRegion.name,
+                modelName: 'Sound Modulation',
+                description: '# Sound Modulation\n' +
+                    '이 모델은 `equalizer`를 이용하여 음성을 변조합니다.\n' +
+                    '\n' +
+                    '- `pitch` (-1000~1000)\n' +
+                    '  음성의 `pitch`를 조절합니다.(템포 변경이 아님)\n' +
+                    '\n' +
+                    '- `contrast`(0~100)\n' +
+                    '  이 효과는 압축과 유사하게 동작하며, 오디오 신호를 더 크게 들리게 수정합니다. 수치는 0~100 범위로 0은 대비량을 극대화 시킵니다.\n' +
+                    '  \n' +
+                    '- `echo` (boolean)\n' +
+                    '  아래 `echo` 옵션을 적용합니다.\n' +
+                    '  \n' +
+                    '```json\n' +
+                    '{\n' +
+                    ' gain_in : 0,\n' +
+                    ' gain_out : 1,\n' +
+                    ' delay : 20,\n' +
+                    ' decay : 0.4\n' +
+                    '}\n' +
+                    '```',
+                inputType: ModelInputType.SOUND,
+                outputType: ModelOutputType.SOUND,
+                category: 'Sound Processing',
+                parameters: {
+                    'data': {
+                        'echo': true,
+                        'pitch': 500,
+                        'preset': 'old',
+                        'contrast': 100
+                    },
+                    'schema': {
+                        'type': 'object',
+                        'properties': {
+                            'echo': {
+                                'type': 'boolean',
+                                'default': true
+                            },
+                            'pitch': {
+                                'type': 'number',
+                                'default': 500,
+                                'minimum': -1000
+                            },
+                            'preset': {
+                                'enum': [
+                                    'old',
+                                    'adult',
+                                    'child',
+                                    'custom'
+                                ],
+                                'type': 'string',
+                                'default': 'old'
+                            },
+                            'contrast': {
+                                'type': 'number',
+                                'default': 100,
+                                'maximum': 100,
+                                'minimum': 0
+                            }
+                        }
+                    },
+                    'uischema': {
+                        'type': 'VerticalLayout',
+                        'elements': [
+                            {
+                                'type': 'Control',
+                                'scope': '#/properties/preset'
+                            },
+                            {
+                                'type': 'Control',
+                                'scope': '#/properties/pitch'
+                            },
+                            {
+                                'type': 'Control',
+                                'scope': '#/properties/contrast'
+                            },
+                            {
+                                'type': 'Control',
+                                'scope': '#/properties/echo'
+                            }
+                        ]
+                    }
+                },
+                imageName: 'sound-modulation:latest'
+            });
+
+            console.log('Creating test8:image-captioning');
+            await PlatformAPI.signIn('test8@test.com', 'test');
+            await PlatformAPI.uploadModelWithImage({
+                regionName: mainRegion.name,
+                modelName: 'Image Captioning',
+                description: '# Image Captioning \n\n 이미지를 묘사하는 텍스트를 생성하는 모델입니다',
+                inputType: ModelInputType.IMAGE,
+                outputType: ModelOutputType.TEXT,
+                category: 'Image Processing',
+                parameters: {uischema: {}, data: {}, schema: {}},
+                imageName: 'image-captioning:latest'
+            });
+
+            console.log('Creating test9:object-detection');
+            await PlatformAPI.signIn('test9@test.com', 'test');
+            await PlatformAPI.uploadModelWithImage({
+                regionName: mainRegion.name,
+                modelName: 'Object Detection',
+                description: `# Object Detection
+
+이 모델은 영상 내에 존재하는 사물을 인식합니다. Ultralytics YOLOv8을 이용하여, 사물을 인식하고 이를 영상에 표현합니다.
+
+\`\`\`shell
+yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
+\`\`\`
+
+- model
+
+  이용할 YOLO 모델의 종류를 선택합니다.
+
+## YOLO 종류
+
+| Model   | size(pixels) | mAP  | Speed(CPU) | Speed(TensorRT) | params(M) | FLOPs(B) |
+| ------- | ------------ | ---- | ---------- | --------------- | --------- | -------- |
+| YOLOv8n | 640          | 37.3 | 80.4       | 0.99            | 3.2       | 8.7      |
+| YOLOv8s | 640          | 44.9 | 128.4      | 1.20            | 11.2      | 28.6     |
+| YOLOv8m | 640          | 50.2 | 234.7      | 1.83            | 25.9      | 78.9     |
+| YOLOv8l | 640          | 52.9 | 375.2      | 2.39            | 43.7      | 165.2    |
+| YOLOv8x | 640          | 53.9 | 479.1      | 3.53            | 68.2      | 257.8    |
+
+## 매개변수
+
+\`\`\`json
+{
+    "model": "yolov8n.pt"
+}
+\`\`\`
+`,
+                inputType: ModelInputType.VIDEO,
+                outputType: ModelOutputType.VIDEO,
+                category: 'Object Detection',
+                parameters: {
+                    'data': {'model': 'yolov8m.pt'},
+                    'schema': {
+                        'type': 'object',
+                        'properties': {
+                            'model': {
+                                'enum': ['yolov8m.pt', 'yolov8n.pt', 'yolov8s.pt', 'yolov8l.pt', 'yolov8x.pt'],
+                                'type': 'string',
+                                'default': 'yolov8m.pt',
+                                'description': 'Yolo Model'
+                            }
+                        }
+                    },
+                    'uischema': {
+                        'type': 'VerticalLayout',
+                        'elements': [{'type': 'Control', 'scope': '#/properties/model'}]
+                    }
+                },
+                imageName: 'object-detection:latest'
+            });
+
+            console.log('Creating test10:sentence-generator');
+            await PlatformAPI.signIn('test10@test.com', 'test');
+            await PlatformAPI.uploadModelWithImage({
+                regionName: mainRegion.name,
+                modelName: 'Sentence Generator',
+                description: `# Sentence Generator
+                
+            촘스키의 변형 생성 문법을 기반으로 자연어 문장을 생성합니다. 
+            
+            명사(nouns), 자동사(intransitive_verb), 타동사(transitive_verb)를 입력하여 다양한 종류의 영어 문장을 생성할 수 있습니다.
+`,
+                inputType: ModelInputType.VIDEO,
+                outputType: ModelOutputType.VIDEO,
+                category: 'Sentence Generator',
+                parameters: {
+                    'data': {
+                        'parameters': [
+                            {
+                                'type': 'nouns',
+                                'content': 'DuckSu'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'JinHyung'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'DaeJune'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'HoeJong'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'JaeHong'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'JiWoo'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'SangWon'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'SangBeom'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'SangHyeon'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'YouChan'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'YoungWo'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'koreatech students'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'chodings'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'gongdoris'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'languages'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'computers'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'tricks'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'rules'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'linguists'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'programmers'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'neuroscientists'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'horses'
+                            },
+                            {
+                                'type': 'nouns',
+                                'content': 'dragons'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'walk'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'sleep'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'exist'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'die'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'sing'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'hop'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'toss and turn'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'run'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'fly'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'transform'
+                            },
+                            {
+                                'type': 'intransitive_verb',
+                                'content': 'conjugate'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'love'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'hate'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'eat'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'kill'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'make'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'need'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'flirt with'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'enjoy'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'are angry with'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'be in fact'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'be'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'transform into'
+                            },
+                            {
+                                'type': 'transitive_verb',
+                                'content': 'study'
+                            }
+                        ],
+                        'numberOfSentence': 5
+                    },
+                    'schema': {
+                        'properties': {
+                            'parameters': {
+                                'type': 'array',
+                                'items': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'type': {
+                                            'enum': [
+                                                'nouns',
+                                                'intransitive_verb',
+                                                'transitive_verb'
+                                            ],
+                                            'type': 'string'
+                                        },
+                                        'content': {
+                                            'type': 'string',
+                                            'maxLength': 20
+                                        }
+                                    }
+                                }
+                            },
+                            'numberOfSentence': {
+                                'type': 'integer',
+                                'minimum': 1,
+                                'multipleOf': 1
+                            }
+                        }
+                    },
+                    'uischema': {
+                        'type': 'VerticalLayout',
+                        'elements': [
+                            {
+                                'type': 'Control',
+                                'label': 'Number of sentence',
+                                'scope': '#/properties/numberOfSentence'
+                            },
+                            {
+                                'type': 'Control',
+                                'label': 'Sentence parameters',
+                                'scope': '#/properties/parameters'
+                            }
+                        ]
+                    }
+                },
+                imageName: 'sentence-generator:latest'
+            });
         } catch (e) {
             console.error(e);
             fail(e.response.data);
         }
-
-        console.log('Creating test7:sound-modulation');
-
-        await PlatformAPI.signIn('test7@test.com', 'test');
-        await PlatformAPI.uploadModelWithImage({
-            regionName: mainRegion.name,
-            modelName: 'Sound Modulation',
-            description: '# Sound Modulation\n' +
-                'A model that modulates the `voice` by adjusting the `equalizer` of the voice.\n' +
-                '- pitch`-1000~1000`\n' +
-                '  Change the audio pitch (but not tempo).\n' +
-                '  *shift* gives the pitch shift as positive or negative `cents` (i.e. 100ths of a semitone). \n' +
-                '- contrast `0~100`\n' +
-                '  Comparable with compression, this effect modifies an audio signal to make it sound louder. *enhancement-amount* controls the amount of the enhancement and is a number in the range 0−100. Note that *enhancement-amount* = 0 still gives a significant contrast enhancement.\n' +
-                '  See also the **compand** and **mcompand** effects.\n' +
-                '- echo `boolean`\n' +
-                '  apply echo options\n' +
-                '  ```json\n' +
-                '  {\n' +
-                '      gain_in : 0,\n' +
-                '     gain_out : 1,\n' +
-                '     delay : 20,\n' +
-                '     decay : 0.4\n' +
-                '  }\n' +
-                '  ```',
-            inputType: ModelInputType.SOUND,
-            outputType: ModelOutputType.SOUND,
-            category: 'Sound Processing',
-            parameters: {
-                'data': {
-                    'echo': true,
-                    'pitch': 500,
-                    'preset': 'old',
-                    'contrast': 100
-                },
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'echo': {
-                            'type': 'boolean',
-                            'default': true
-                        },
-                        'pitch': {
-                            'type': 'number',
-                            'default': 500,
-                            'minimum': -1000
-                        },
-                        'preset': {
-                            'enum': [
-                                'old',
-                                'adult',
-                                'child',
-                                'custom'
-                            ],
-                            'type': 'string',
-                            'default': 'old'
-                        },
-                        'contrast': {
-                            'type': 'number',
-                            'default': 100,
-                            'maximum': 100,
-                            'minimum': 0
-                        }
-                    }
-                },
-                'uischema': {
-                    'type': 'VerticalLayout',
-                    'elements': [
-                        {
-                            'type': 'Control',
-                            'scope': '#/properties/preset'
-                        },
-                        {
-                            'type': 'Control',
-                            'scope': '#/properties/pitch'
-                        },
-                        {
-                            'type': 'Control',
-                            'scope': '#/properties/contrast'
-                        },
-                        {
-                            'type': 'Control',
-                            'scope': '#/properties/echo'
-                        }
-                    ]
-                }
-            },
-            file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/sound-modulation.tar', {
-                responseType: 'stream'
-            })).data
-        });
-
-        console.log('Creating test8:image-captioning');
-        await PlatformAPI.signIn('test8@test.com', 'test');
-        await PlatformAPI.uploadModelWithImage({
-            regionName: mainRegion.name,
-            modelName: 'Image Captioning',
-            description: '# Image Captioning \n\n 이미지를 묘사하는 텍스트를 생성하는 모델입니다',
-            inputType: ModelInputType.IMAGE,
-            outputType: ModelOutputType.TEXT,
-            category: 'Image Processing',
-            parameters: {uischema: {}, data: {}, schema: {}},
-            file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/image-captioning.tar', {
-                responseType: 'stream'
-            })).data
-        });
     }, 60 * 60 * 1000);
 });

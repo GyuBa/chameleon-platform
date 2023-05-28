@@ -1,8 +1,8 @@
-import axios, {AxiosInstance} from 'axios';
+import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import {
     EarnedPointHistoryEntityData,
     HistoriesRequestOptions,
-    HistoryEntityData,
+    HistoryEntityData, ModelDebugUploadData,
     ModelDockerfileUploadData,
     ModelEntityData,
     ModelExecutionData,
@@ -53,13 +53,13 @@ export class PlatformAPI {
     }
 
 
-    public static async uploadModelWithImage(uploadData: ModelImageUploadData): Promise<ResponseData> {
-        const response = await this.instance.post('/models/upload-image', this.toFormData(uploadData), this.uploadConfig);
+    public static async uploadModelWithImage(uploadData: ModelImageUploadData | ModelDebugUploadData, axiosConfig?: AxiosRequestConfig<FormData>): Promise<ResponseData> {
+        const response = await this.instance.post('/models/upload-image', this.toFormData(uploadData), {...this.uploadConfig, ...axiosConfig});
         return response?.data;
     }
 
-    public static async uploadModelWithDockerfile(uploadData: ModelDockerfileUploadData): Promise<ResponseData> {
-        const response = await this.instance.post('/models/upload-dockerfile', this.toFormData(uploadData), this.uploadConfig);
+    public static async uploadModelWithDockerfile(uploadData: ModelDockerfileUploadData | ModelDebugUploadData, axiosConfig?: AxiosRequestConfig<FormData>): Promise<ResponseData> {
+        const response = await this.instance.post('/models/upload-dockerfile', this.toFormData(uploadData), {...this.uploadConfig, ...axiosConfig});
         return response?.data;
     }
 

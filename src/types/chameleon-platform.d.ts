@@ -79,6 +79,7 @@ export type PlatformConfig = {
     dependenciesPath: string;
     socketPort: number;
     httpPort: number;
+    debugMode: boolean;
     db: MysqlConnectionOptions;
     imp: {key: string, secret: string}
 };

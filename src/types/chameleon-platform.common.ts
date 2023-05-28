@@ -319,10 +319,13 @@ export type ModelCommonUploadData = {
     description: string
     category?: string;
     price?: number;
+    cacheSize?: number;
 }
 export type ModelImageUploadData = ModelCommonUploadData & { file: File }
 
 export type ModelDockerfileUploadData = ModelCommonUploadData & { files: File[] }
+
+export type ModelDebugUploadData = ModelCommonUploadData & { imageName: string }
 
 export type ModelExecutionParameters = any;
 

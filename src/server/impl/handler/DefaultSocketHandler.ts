@@ -87,6 +87,34 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     server.manager.sendExit(1, 'Wrong parameters.', [socket]);
                     return;
                 }
+                const pointHistory = new PointHistory();
+                const isPaidCase = model.price > 0 && model.register.id !== history.executor.id;
+                if (isPaidCase) {
+                    const executor = await this.userController.findById(history.executor.id);
+                    const register = model.register;
+                    if (executor.point - model.price < 0) {
+                        server.manager.sendExit(1, 'Not enough points to use.', [socket]);
+                        return;
+                    }
+                    executor.point -= model.price;
+                    register.earnedPoint += model.price;
+
+                    pointHistory.delta = -model.price;
+                    pointHistory.leftPoint = executor.point;
+                    pointHistory.user = executor;
+                    pointHistory.type = PointHistoryType.USE_PAID_MODEL;
+
+                    const earnedPointHistory = new EarnedPointHistory();
+                    earnedPointHistory.delta = model.price;
+                    earnedPointHistory.leftEarnedPoint = register.earnedPoint;
+                    earnedPointHistory.model = model;
+                    earnedPointHistory.user = register;
+                    earnedPointHistory.executor = executor;
+                    await this.earnedPointHistoryController.save(earnedPointHistory);
+
+                    await this.userController.save(executor);
+                    await this.userController.save(register);
+                }
 
                 socket.data.executedHistory = await this.modelExecutionManager.executeModel(model, {
                     executor: history.executor, inputPath, parameters, inputInfo: {
@@ -95,32 +123,9 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
                     }, parent: history
                 });
 
-                if (model.price > 0 && model.register.id !== history.executor.id) {
-                    if (history.executor.point - model.price < 0) {
-                        server.manager.sendExit(1, 'Not enough points to use.', [socket]);
-                        return;
-                    }
-                    history.executor.point -= model.price;
-                    history.model.register.earnedPoint += model.price;
-
-                    const pointHistory = new PointHistory();
-                    pointHistory.delta = -model.price;
-                    pointHistory.leftPoint = history.executor.point;
-                    pointHistory.user = history.executor;
-                    pointHistory.type = PointHistoryType.USE_PAID_MODEL;
-                    pointHistory.modelHistory = history;
+                if (isPaidCase) {
+                    pointHistory.modelHistory = socket.data.executedHistory;
                     await this.pointHistoryController.save(pointHistory);
-
-                    const earnedPointHistory = new EarnedPointHistory();
-                    earnedPointHistory.delta = model.price;
-                    earnedPointHistory.leftEarnedPoint = history.model.register.earnedPoint;
-                    earnedPointHistory.model = history.model;
-                    earnedPointHistory.user = history.model.register;
-                    earnedPointHistory.executor = history.executor;
-                    await this.earnedPointHistoryController.save(earnedPointHistory);
-
-                    await this.userController.save(history.executor);
-                    await this.userController.save(history.model.register);
                 }
 
                 console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id} Sub) ExecutedHistory: ${socket.data.executedHistory.id}, NumberOfParents: ${socket.data.executedHistory.numberOfParents}`);
