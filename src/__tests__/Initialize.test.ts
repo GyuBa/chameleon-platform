@@ -498,13 +498,13 @@ describe('Initialize System', () => {
                 })).data
             });
 
-            console.log('Creating test6:zip-input-model');
+            console.log('Creating test6:files-input-model');
             await PlatformAPI.signIn('test6@test.com', 'test');
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
-                modelName: 'Zip Input Model',
+                modelName: 'Files Input Model',
                 description: '# Empty Model \n\n 여러개의 파일을 받는 모델입니다.',
-                inputType: ModelInputType.ZIP,
+                inputType: ModelInputType.FILES,
                 outputType: ModelOutputType.BINARY,
                 parameters: exampleParameters,
                 file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
