@@ -636,7 +636,7 @@ describe('Initialize System', () => {
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.TEXT,
                 category: 'Image Processing',
-                parameters: {uischema: {}, data: {}, schema: {}},
+                parameters: emptyParameters,
                 imageName: 'image-captioning:latest'
             });
 
@@ -704,14 +704,9 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Sentence Generator',
-                description: `# Sentence Generator
-                
-            촘스키의 변형 생성 문법을 기반으로 자연어 문장을 생성합니다. 
-            
-            명사(nouns), 자동사(intransitive_verb), 타동사(transitive_verb)를 입력하여 다양한 종류의 영어 문장을 생성할 수 있습니다.
-`,
-                inputType: ModelInputType.VIDEO,
-                outputType: ModelOutputType.VIDEO,
+                description: `# Sentence Generator \n\n 촘스키의 변형 생성 문법을 기반으로 자연어 문장을 생성합니다. \n\n 명사(nouns), 자동사(intransitive_verb), 타동사(transitive_verb)를 입력하여 다양한 종류의 영어 문장을 생성할 수 있습니다. `,
+                inputType: ModelInputType.EMPTY,
+                outputType: ModelOutputType.TEXT,
                 category: 'Sentence Generator',
                 parameters: {
                     'data': {
