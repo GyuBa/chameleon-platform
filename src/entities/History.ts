@@ -29,7 +29,7 @@ export class History extends Common {
         outputInfo: ModelOutputInfo;
     @Column({nullable: true})
         outputType: ModelOutputType;
-    @Column({nullable: true, type: 'text'})
+    @Column({nullable: true, type: 'longtext'})
         description: string;
     @ManyToOne(
         () => User,
@@ -65,7 +65,7 @@ export class History extends Common {
 
     @Column({nullable: true, type: 'json'})
         parameters: ModelExecutionParameters;
-    @Column({nullable: true, type: 'text'})
+    @Column({nullable: true, type: 'longtext'})
         terminal: string;
 
 }

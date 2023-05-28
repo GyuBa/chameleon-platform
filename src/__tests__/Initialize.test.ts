@@ -549,25 +549,15 @@ describe('Initialize System', () => {
             regionName: mainRegion.name,
             modelName: 'Sound Modulation',
             description: '# Sound Modulation\n' +
-                '\n' +
                 'A model that modulates the `voice` by adjusting the `equalizer` of the voice.\n' +
-                '\n' +
                 '- pitch`-1000~1000`\n' +
-                '\n' +
                 '  Change the audio pitch (but not tempo).\n' +
-                '\n' +
                 '  *shift* gives the pitch shift as positive or negative `cents` (i.e. 100ths of a semitone). \n' +
-                '\n' +
                 '- contrast `0~100`\n' +
-                '\n' +
                 '  Comparable with compression, this effect modifies an audio signal to make it sound louder. *enhancement-amount* controls the amount of the enhancement and is a number in the range 0−100. Note that *enhancement-amount* = 0 still gives a significant contrast enhancement.\n' +
-                '\n' +
                 '  See also the **compand** and **mcompand** effects.\n' +
-                '\n' +
                 '- echo `boolean`\n' +
-                '\n' +
                 '  apply echo options\n' +
-                '\n' +
                 '  ```json\n' +
                 '  {\n' +
                 '      gain_in : 0,\n' +
