@@ -1050,6 +1050,8 @@ describe('Initialize System', () => {
                 category: 'Super Resolution',
                 price: 200
             });
+
+            console.log(`Creating ${mongle.username}:stable-diffusion`);
             await PlatformAPI.uploadModelWithImage({
                 regionName: subRegion.name,
                 modelName: 'Stable Diffusion',
