@@ -541,7 +541,7 @@ describe('Initialize System', () => {
                     price: Math.floor(Math.random() * 1000 + 100)
                 });
             }
-                
+
             const mongle = accounts.find(u => u.username === 'mongle');
             console.log(`Creating ${mongle.username}:sound-modulation`);
             await PlatformAPI.signIn(mongle.email, mongle.password);
@@ -550,25 +550,25 @@ describe('Initialize System', () => {
                 regionName: mainRegion.name,
                 modelName: 'Sound Modulation',
                 description: '# Sound Modulation\n' +
-                        '이 모델은 `equalizer`를 이용하여 음성을 변조합니다.\n' +
-                        '\n' +
-                        '- `pitch` (-1000\\~1000)\n' +
-                        '  음성의 `pitch`를 조절합니다.(템포 변경이 아님)\n' +
-                        '\n' +
-                        '- `contrast`(0\\~100)\n' +
-                        '  이 효과는 압축과 유사하게 동작하며, 오디오 신호를 더 크게 들리게 수정합니다. 수치는 0~100 범위로 0은 대비량을 극대화 시킵니다.\n' +
-                        '  \n' +
-                        '- `echo` (boolean)\n' +
-                        '  아래 `echo` 옵션을 적용합니다.\n' +
-                        '  \n' +
-                        '```json\n' +
-                        '{\n' +
-                        ' gain_in : 0,\n' +
-                        ' gain_out : 1,\n' +
-                        ' delay : 20,\n' +
-                        ' decay : 0.4\n' +
-                        '}\n' +
-                        '```',
+                    '이 모델은 `equalizer`를 이용하여 음성을 변조합니다.\n' +
+                    '\n' +
+                    '- `pitch` (-1000\\~1000)\n' +
+                    '  음성의 `pitch`를 조절합니다.(템포 변경이 아님)\n' +
+                    '\n' +
+                    '- `contrast`(0\\~100)\n' +
+                    '  이 효과는 압축과 유사하게 동작하며, 오디오 신호를 더 크게 들리게 수정합니다. 수치는 0~100 범위로 0은 대비량을 극대화 시킵니다.\n' +
+                    '  \n' +
+                    '- `echo` (boolean)\n' +
+                    '  아래 `echo` 옵션을 적용합니다.\n' +
+                    '  \n' +
+                    '```json\n' +
+                    '{\n' +
+                    ' gain_in : 0,\n' +
+                    ' gain_out : 1,\n' +
+                    ' delay : 20,\n' +
+                    ' decay : 0.4\n' +
+                    '}\n' +
+                    '```',
                 inputType: ModelInputType.SOUND,
                 outputType: ModelOutputType.SOUND,
                 category: 'Sound Processing',
@@ -653,34 +653,34 @@ describe('Initialize System', () => {
                 modelName: 'Object Detection',
                 description: `# Object Detection
 
-이 모델은 영상 내에 존재하는 사물을 인식합니다. Ultralytics YOLOv8을 이용하여, 사물을 인식하고 이를 영상에 표현합니다.
+    이 모델은 영상 내에 존재하는 사물을 인식합니다. Ultralytics YOLOv8을 이용하여, 사물을 인식하고 이를 영상에 표현합니다.
 
-\`\`\`shell
-yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
-\`\`\`
+    \`\`\`shell
+    yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
+    \`\`\`
 
-- model
+    - model
 
-  이용할 YOLO 모델의 종류를 선택합니다.
+      이용할 YOLO 모델의 종류를 선택합니다.
 
-## YOLO 종류
+    ## YOLO 종류
 
-| Model   | size(pixels) | mAP  | Speed(CPU) | Speed(TensorRT) | params(M) | FLOPs(B) |
-| ------- | ------------ | ---- | ---------- | --------------- | --------- | -------- |
-| YOLOv8n | 640          | 37.3 | 80.4       | 0.99            | 3.2       | 8.7      |
-| YOLOv8s | 640          | 44.9 | 128.4      | 1.20            | 11.2      | 28.6     |
-| YOLOv8m | 640          | 50.2 | 234.7      | 1.83            | 25.9      | 78.9     |
-| YOLOv8l | 640          | 52.9 | 375.2      | 2.39            | 43.7      | 165.2    |
-| YOLOv8x | 640          | 53.9 | 479.1      | 3.53            | 68.2      | 257.8    |
+    | Model   | size(pixels) | mAP  | Speed(CPU) | Speed(TensorRT) | params(M) | FLOPs(B) |
+    | ------- | ------------ | ---- | ---------- | --------------- | --------- | -------- |
+    | YOLOv8n | 640          | 37.3 | 80.4       | 0.99            | 3.2       | 8.7      |
+    | YOLOv8s | 640          | 44.9 | 128.4      | 1.20            | 11.2      | 28.6     |
+    | YOLOv8m | 640          | 50.2 | 234.7      | 1.83            | 25.9      | 78.9     |
+    | YOLOv8l | 640          | 52.9 | 375.2      | 2.39            | 43.7      | 165.2    |
+    | YOLOv8x | 640          | 53.9 | 479.1      | 3.53            | 68.2      | 257.8    |
 
-## 매개변수
+    ## 매개변수
 
-\`\`\`json
-{
-    "model": "yolov8n.pt"
-}
-\`\`\`
-`,
+    \`\`\`json
+    {
+        "model": "yolov8n.pt"
+    }
+    \`\`\`
+    `,
                 inputType: ModelInputType.VIDEO,
                 outputType: ModelOutputType.VIDEO,
                 category: 'Object Detection',
@@ -1008,14 +1008,48 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
                 },
                 imageName: 'upscaling-imagemagick:latest'
             });
-        } catch
-        (e) {
+
+            console.log(`Creating ${mongle.username}:ai-upscaling`);
+            await PlatformAPI.uploadModelWithImage({
+                regionName: subRegion.name,
+                modelName: 'AI Upscaling',
+                description: 'AI Upscaling',
+                inputType: ModelInputType.IMAGE,
+                outputType: ModelOutputType.IMAGE,
+                parameters: {
+                    schema: {
+                        'type': 'object',
+                        'properties': {
+                            'model': {
+                                'type': 'string',
+                                'default': 'SwinIR',
+                                'enum': [
+                                    'SwinIR',
+                                    'SwinIR_GAN_CCTV',
+                                    'SwinIR_GAN_Blackbox',
+                                    'HAT'
+                                ]
+                            }
+                        }
+                    }, uischema: {
+                        'type': 'VerticalLayout',
+                        'elements': [
+                            {
+                                'type': 'Control',
+                                'scope': '#/properties/model'
+                            }
+                        ]
+                    }, data: {
+                        'model': 'SwinIR'
+                    }
+                },
+                imageName: 'upscaling-ai',
+                category: 'Super Resolution',
+                price: 200
+            });
+        } catch (e) {
             console.error(e);
             fail(e.response.data);
         }
-    }
-    ,
-    60 * 60 * 1000
-    )
-    ;
+    }, 60 * 60 * 1000);
 });

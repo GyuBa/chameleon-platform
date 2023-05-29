@@ -76,18 +76,26 @@ export class ModelExecutionManager extends ServiceManager {
 
         const excludePaths = [paths.script, paths.controllerDirectory, '/dev/null'];
         const clearPaths = Object.values(paths).filter(p => !excludePaths.includes(p)).sort();
-        const initCommand = [`mkdir -p ${paths.controllerDirectory}`, 'mkdir -p /usr/local/bin', `ln -s ${paths.controllerDirectory}/controller /usr/local/bin/chameleon`, ...clearPaths.map(p => `rm -rf "${p}" && mkdir -p $(dirname "${p}")`)].join(' && ');
+        const initCommand = [`mkdir -p ${paths.controllerDirectory}/dependencies`, 'mkdir -p /usr/local/bin', `ln -s ${paths.controllerDirectory}/controller /usr/local/bin/chameleon`, ...clearPaths.map(p => `rm -rf "${p}" && mkdir -p $(dirname "${p}")`)].join(' && ');
         await DockerUtils.exec(container, initCommand);
 
-        const dependencies = container.putArchive(PlatformServer.config.dependenciesPath, {path: '/'});
+        const dependencies = container.putArchive(PlatformServer.config.dependenciesPath, {path: `${paths.controllerDirectory}/dependencies`});
         const controller = container.putArchive(PlatformServer.config.controllerPath, {path: paths.controllerDirectory});
-        await Promise.all([dependencies, controller]);
+        await Promise.all([dependencies.then(async () => await DockerUtils.exec(container, `cp -nr ${paths.controllerDirectory}/dependencies/* /`)), controller]);
     }
 
     async createCachedContainer(docker: Dockerode, model: Model, keepRunning?: boolean) {
         const container = await docker.createContainer({
             Image: model.image.uniqueId,
-            Tty: true
+            Tty: true,
+            HostConfig: {
+                DeviceRequests: [{
+                    'Driver': 'nvidia',
+                    'Count': -1,
+                    'Capabilities': [['gpu']],
+                    'Options': {},
+                }]
+            }
         });
         const history = new History();
         history.containerId = container.id;

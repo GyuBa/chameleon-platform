@@ -364,7 +364,7 @@ export class ModelService extends HTTPService {
                 output: '/opt/mctr/o/raw',
                 outputInfo: '/opt/mctr/o/info',
                 outputDescription: '/opt/mctr/o/desc',
-                controllerDirectory: '/opt/mctr/',
+                controllerDirectory: '/opt/mctr',
                 debugLog: '/dev/null'
             }
         };
