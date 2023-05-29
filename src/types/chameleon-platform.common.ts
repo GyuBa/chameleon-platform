@@ -106,6 +106,7 @@ export interface RegionEntityData {
     name: string;
     host: string;
     port: number;
+    useGPU: boolean;
     cacheSize: number;
 }
 
@@ -114,6 +115,7 @@ export const Region: Array<keyof RegionEntityData> = [
     'name',
     'host',
     'port',
+    'useGPU',
     'cacheSize',
 ];
 
