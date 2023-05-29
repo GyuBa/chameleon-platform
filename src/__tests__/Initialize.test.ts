@@ -637,6 +637,7 @@ describe('Initialize System', () => {
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Image Captioning',
+                price: 200,
                 description: '# Image Captioning \n\n 이미지를 묘사하는 텍스트를 생성하는 모델입니다',
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.TEXT,
@@ -648,6 +649,7 @@ describe('Initialize System', () => {
             console.log(`Creating ${mongle.username}:object-detection`);
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
+                price: 250,
                 modelName: 'Object Detection',
                 description: `# Object Detection
 
@@ -707,6 +709,7 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Sentence Generator',
+                price: 100,
                 description: '# Sentence Generator \n\n 촘스키의 변형 생성 문법을 기반으로 자연어 문장을 생성합니다. \n\n 명사(nouns), 자동사(intransitive_verb), 타동사(transitive_verb)를 입력하여 다양한 종류의 영어 문장을 생성할 수 있습니다. ',
                 inputType: ModelInputType.EMPTY,
                 outputType: ModelOutputType.TEXT,
@@ -955,6 +958,7 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
 
             console.log(`Creating ${mongle.username}:upscaling-with-imagemagick`);
             await PlatformAPI.uploadModelWithImage({
+                price: 100,
                 regionName: mainRegion.name,
                 modelName: 'Upscaling with ImageMagick',
                 description: '# Upscaling with ImageMagick \n\n https://imagemagick.org\\n\\nImageMagick Tool을 이용한 Bicubic 업스케일링 모델입니다.',
