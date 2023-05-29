@@ -20,18 +20,21 @@ const mainRegion = new Region();
 mainRegion.name = initConfig.mainRegion.name;
 mainRegion.host = initConfig.mainRegion.host;
 mainRegion.port = initConfig.mainRegion.port;
+mainRegion.useGPU = initConfig.mainRegion.useGPU;
 mainRegion.cacheSize = initConfig.mainRegion.cacheSize;
 
 const subRegion = new Region();
 subRegion.name = initConfig.subRegion.name;
 subRegion.host = initConfig.subRegion.host;
 subRegion.port = initConfig.subRegion.port;
+subRegion.useGPU = initConfig.subRegion.useGPU;
 subRegion.cacheSize = initConfig.subRegion.cacheSize;
 
 const dummyRegion = new Region();
 dummyRegion.name = initConfig.dummyRegion.name;
 dummyRegion.host = initConfig.dummyRegion.host;
 dummyRegion.port = initConfig.dummyRegion.port;
+dummyRegion.useGPU = initConfig.dummyRegion.useGPU;
 dummyRegion.cacheSize = initConfig.dummyRegion.cacheSize;
 
 const accounts = initConfig.accounts as User[];
@@ -524,24 +527,6 @@ describe('Initialize System', () => {
                 })).data
             });
 
-            await PlatformAPI.signIn('test@test.com', 'test');
-            for (const dummy of dummies) {
-                console.log(`Creating ${dummy.modelName}`);
-                await PlatformAPI.uploadModelWithImage({
-                    regionName: mainRegion.name,
-                    modelName: dummy.modelName,
-                    description: dummy.description,
-                    inputType: dummy.inputType,
-                    outputType: dummy.outputType,
-                    category: dummy.category,
-                    parameters: emptyParameters,
-                    file: (await PlatformAPI.instance.get(`http://files.chameleon.best/images/simple-output-${dummy.outputType}.tar`, {
-                        responseType: 'stream'
-                    })).data,
-                    price: Math.floor(Math.random() * 1000 + 100)
-                });
-            }
-
             const mongle = accounts.find(u => u.username === 'mongle');
             console.log(`Creating ${mongle.username}:sound-modulation`);
             await PlatformAPI.signIn(mongle.email, mongle.password);
@@ -651,36 +636,35 @@ describe('Initialize System', () => {
                 regionName: mainRegion.name,
                 price: 250,
                 modelName: 'Object Detection',
-                description: `# Object Detection
-
-    이 모델은 영상 내에 존재하는 사물을 인식합니다. Ultralytics YOLOv8을 이용하여, 사물을 인식하고 이를 영상에 표현합니다.
-
-    \`\`\`shell
-    yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
-    \`\`\`
-
-    - model
-
-      이용할 YOLO 모델의 종류를 선택합니다.
-
-    ## YOLO 종류
-
-    | Model   | size(pixels) | mAP  | Speed(CPU) | Speed(TensorRT) | params(M) | FLOPs(B) |
-    | ------- | ------------ | ---- | ---------- | --------------- | --------- | -------- |
-    | YOLOv8n | 640          | 37.3 | 80.4       | 0.99            | 3.2       | 8.7      |
-    | YOLOv8s | 640          | 44.9 | 128.4      | 1.20            | 11.2      | 28.6     |
-    | YOLOv8m | 640          | 50.2 | 234.7      | 1.83            | 25.9      | 78.9     |
-    | YOLOv8l | 640          | 52.9 | 375.2      | 2.39            | 43.7      | 165.2    |
-    | YOLOv8x | 640          | 53.9 | 479.1      | 3.53            | 68.2      | 257.8    |
-
-    ## 매개변수
-
-    \`\`\`json
-    {
-        "model": "yolov8n.pt"
-    }
-    \`\`\`
-    `,
+                description: '# Object Detection\n' +
+                    '\n' +
+                    '이 모델은 영상 내에 존재하는 사물을 인식합니다. Ultralytics YOLOv8을 이용하여, 사물을 인식하고 이를 영상에 표현합니다.\n' +
+                    '\n' +
+                    '```shell\n' +
+                    'yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"\n' +
+                    '```\n' +
+                    '\n' +
+                    '- model\n' +
+                    '\n' +
+                    '  이용할 YOLO 모델의 종류를 선택합니다.\n' +
+                    '\n' +
+                    '## YOLO 종류\n' +
+                    '\n' +
+                    '| Model   | size(pixels) | mAP  | Speed(CPU) | Speed(TensorRT) | params(M) | FLOPs(B) |\n' +
+                    '| ------- | ------------ | ---- | ---------- | --------------- | --------- | -------- |\n' +
+                    '| YOLOv8n | 640          | 37.3 | 80.4       | 0.99            | 3.2       | 8.7      |\n' +
+                    '| YOLOv8s | 640          | 44.9 | 128.4      | 1.20            | 11.2      | 28.6     |\n' +
+                    '| YOLOv8m | 640          | 50.2 | 234.7      | 1.83            | 25.9      | 78.9     |\n' +
+                    '| YOLOv8l | 640          | 52.9 | 375.2      | 2.39            | 43.7      | 165.2    |\n' +
+                    '| YOLOv8x | 640          | 53.9 | 479.1      | 3.53            | 68.2      | 257.8    |\n' +
+                    '\n' +
+                    '## 매개변수\n' +
+                    '\n' +
+                    '```json\n' +
+                    '{\n' +
+                    '    "model": "yolov8n.pt"\n' +
+                    '}\n' +
+                    '```',
                 inputType: ModelInputType.VIDEO,
                 outputType: ModelOutputType.VIDEO,
                 category: 'Object Detection',
@@ -1013,7 +997,11 @@ describe('Initialize System', () => {
             await PlatformAPI.uploadModelWithImage({
                 regionName: subRegion.name,
                 modelName: 'AI Upscaling',
-                description: 'AI Upscaling',
+                description: '# AI Upscaling \n\n 신경망을 이용한 업스케일링 모델입니다.\n' +
+                    ' - SwinIR: 기본 SwinIR 구조를 사용하는 업스케일링 모델입니다.\n' +
+                    ' - CCTV 학습 모델 (SwinIR_GAN_CCTV): 공원과 바닷가의 CCTV 이미지들을 중점으로 학습한 모델로, CCTV 이미지의 특징인 위에서 아래로 내려다보는 구도의 이미지에 대하여 높은 품질을 기대할 수 있습니다.\n' +
+                    ' - 블랙박스 학습 모델 (SwinIR_GAN_Blackbox): 자동차의 블랙박스 이미지들을 중점으로 학습한 모델로, 도로 환경의 이미지에 대하여 높은 품질을 기대할 수 있습니다.\n' +
+                    ' - 일반 학습 모델 (HAT): 일반적인 이미지들을 이용하여 학습한 모델로, 범용적으로 일반적인 이미지에 대하여 높은 품질을 기대할 수 있습니다.',
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.IMAGE,
                 parameters: {
@@ -1047,9 +1035,124 @@ describe('Initialize System', () => {
                 category: 'Super Resolution',
                 price: 200
             });
+
+            await PlatformAPI.signIn('test@test.com', 'test');
+            for (const dummy of dummies) {
+                console.log(`Creating ${dummy.modelName}`);
+                await PlatformAPI.uploadModelWithImage({
+                    regionName: mainRegion.name,
+                    modelName: dummy.modelName,
+                    description: dummy.description,
+                    inputType: dummy.inputType,
+                    outputType: dummy.outputType,
+                    category: dummy.category,
+                    parameters: emptyParameters,
+                    file: (await PlatformAPI.instance.get(`http://files.chameleon.best/images/simple-output-${dummy.outputType}.tar`, {
+                        responseType: 'stream'
+                    })).data,
+                    price: Math.floor(Math.random() * 1000 + 100)
+                });
+            }
         } catch (e) {
             console.error(e);
             fail(e.response.data);
         }
+    }, 60 * 60 * 1000);
+    test('Add images V2', async () => {
+        await PlatformAPI.signIn('test@test.com', 'test');
+        await PlatformAPI.uploadModelWithImage({
+            regionName: subRegion.name,
+            modelName: 'Stable Diffusion',
+            description: '# Stable Diffusion\n' +
+                '*Stable Diffusion was made possible thanks to a collaboration with [Stability AI](https://stability.ai/) and [Runway](https://runwayml.com/) and builds upon our previous work:*\n' +
+                '\n' +
+                '[**High-Resolution Image Synthesis with Latent Diffusion Models**](https://ommer-lab.com/research/latent-diffusion-models/)<br/>\n' +
+                '[Robin Rombach](https://github.com/rromb)\\*,\n' +
+                '[Andreas Blattmann](https://github.com/ablattmann)\\*,\n' +
+                '[Dominik Lorenz](https://github.com/qp-qp)\\,\n' +
+                '[Patrick Esser](https://github.com/pesser),\n' +
+                '[Björn Ommer](https://hci.iwr.uni-heidelberg.de/Staff/bommer)<br/>\n' +
+                '_[CVPR \'22 Oral](https://openaccess.thecvf.com/content/CVPR2022/html/Rombach_High-Resolution_Image_Synthesis_With_Latent_Diffusion_Models_CVPR_2022_paper.html) |\n' +
+                '[GitHub](https://github.com/CompVis/latent-diffusion) | [arXiv](https://arxiv.org/abs/2112.10752) | [Project page](https://ommer-lab.com/research/latent-diffusion-models/)_\n' +
+                '\n' +
+                '![txt2img-stable2](https://github.com/Koreatech-Mongle/chameleon-platform/assets/87463004/ba198528-592b-446f-bfd2-ea962cc727c5)\n' +
+                '[Stable Diffusion](#stable-diffusion-v1) is a latent text-to-image diffusion\n' +
+                'model.\n' +
+                'Thanks to a generous compute donation from [Stability AI](https://stability.ai/) and support from [LAION](https://laion.ai/), we were able to train a Latent Diffusion Model on 512x512 images from a subset of the [LAION-5B](https://laion.ai/blog/laion-5b/) database. \n' +
+                'Similar to Google\'s [Imagen](https://arxiv.org/abs/2205.11487), \n' +
+                'this model uses a frozen CLIP ViT-L/14 text encoder to condition the model on text prompts.\n' +
+                'With its 860M UNet and 123M text encoder, the model is relatively lightweight and runs on a GPU with at least 10GB VRAM.\n' +
+                'See [this section](#stable-diffusion-v1) below and the [model card](https://huggingface.co/CompVis/stable-diffusion).',
+            inputType: ModelInputType.EMPTY,
+            outputType: ModelOutputType.ZIP_GALLERY,
+            category: 'Stable Diffusion',
+            parameters: {
+                schema: {
+                    'type': 'object',
+                    'properties': {
+                        'prompt': {
+                            'type': 'string',
+                            'description': 'Enter a description of the image you want to create.'
+                        },
+                        'ddim_steps': {
+                            'type': 'number',
+                            'description': 'Number of sampling steps in the Diffusion process.',
+                            'minimum': 1,
+                            'maximum': 500,
+                        },
+                        'n_iter': {
+                            'type': 'integer',
+                            'description': 'A count of how many times to repeat image creation.',
+                            'minimum': 1,
+                            'maximum': 10,
+                        },
+                        'H': {
+                            'type': 'number',
+                            'description': 'Height',
+                            'minimum': 256,
+                            'maximum': 1024,
+                            'enum': [256, 512, 1024]
+                        },
+                        'W': {
+                            'type': 'number',
+                            'description': 'Width',
+                            'minimum': 256,
+                            'maximum': 1024,
+                            'enum': [256, 512, 1024]
+                        },
+                        'scale': {
+                            'type': 'number',
+                        },
+                        'seed': {
+                            'type': 'number',
+                        }
+                    }
+                },
+
+                uischema: {
+                    'type': 'VerticalLayout',
+                    'elements': [{'type': 'Control', 'scope': '#/properties/prompt'}, {
+                        'type': 'Control',
+                        'scope': '#/properties/H'
+                    }, {'type': 'Control', 'scope': '#/properties/W'}, {
+                        'type': 'Control',
+                        'scope': '#/properties/n_iter'
+                    }, {'type': 'Control', 'scope': '#/properties/seed'}, {
+                        'type': 'Control',
+                        'scope': '#/properties/ddim_steps'
+                    }, {'type': 'Control', 'scope': '#/properties/scale'}]
+                },
+                data: {
+                    'ddim_steps': 50,
+                    'H': 512,
+                    'n_iter': 1,
+                    'W': 512,
+                    'scale': 7.5,
+                    'seed': 42
+                }
+            },
+            imageName: 'stable-diffusion',
+            price: Math.floor(Math.random() * 1000 + 100)
+        });
     }, 60 * 60 * 1000);
 });
