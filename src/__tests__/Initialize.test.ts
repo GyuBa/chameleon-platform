@@ -500,22 +500,23 @@ describe('Initialize System', () => {
 
             console.log('Creating test6:files-input-model');
             await PlatformAPI.signIn('test6@test.com', 'test');
-            await PlatformAPI.uploadModelWithImage({
+            await PlatformAPI.uploadModelWithDockerfile({
                 regionName: mainRegion.name,
                 modelName: 'Files Input Model',
-                description: '# Empty Model \n\n 여러개의 파일을 받는 모델입니다.',
+                description: '# Files Input Model \n\n 여러개의 파일을 받는 모델입니다.',
                 inputType: ModelInputType.FILES,
-                outputType: ModelOutputType.BINARY,
+                outputType: ModelOutputType.ZIP_GALLERY,
                 parameters: exampleParameters,
-                file: (await PlatformAPI.instance.get('http://files.chameleon.best/images/simple-output-image.tar', {
+                files: [(await PlatformAPI.instance.get('http://files.chameleon.best/dockerfiles/SimpleEcho/Dockerfile', {
                     responseType: 'stream'
-                })).data
+                })).data],
+                price: 0
             });
 
             await PlatformAPI.executeModel({
                 modelId: (await PlatformAPI.getModelByUsernameAndUniqueName('test6', 'files-input-model')).id,
                 parameters: exampleParameters.data,
-                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/text.txt', {
+                input: (await PlatformAPI.instance.get('http://files.chameleon.best/samples/samples.zip', {
                     responseType: 'stream'
                 })).data
             });
@@ -704,7 +705,7 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Sentence Generator',
-                description: `# Sentence Generator \n\n 촘스키의 변형 생성 문법을 기반으로 자연어 문장을 생성합니다. \n\n 명사(nouns), 자동사(intransitive_verb), 타동사(transitive_verb)를 입력하여 다양한 종류의 영어 문장을 생성할 수 있습니다. `,
+                description: '# Sentence Generator \n\n 촘스키의 변형 생성 문법을 기반으로 자연어 문장을 생성합니다. \n\n 명사(nouns), 자동사(intransitive_verb), 타동사(transitive_verb)를 입력하여 다양한 종류의 영어 문장을 생성할 수 있습니다. ',
                 inputType: ModelInputType.EMPTY,
                 outputType: ModelOutputType.TEXT,
                 category: 'Sentence Generator',
@@ -948,6 +949,59 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
                     }
                 },
                 imageName: 'sentence-generator:latest'
+            });
+
+            console.log('Creating test1:upscaling-with-imagemagick');
+            await PlatformAPI.signIn('test1@test.com', 'test');
+            await PlatformAPI.uploadModelWithImage({
+                regionName: mainRegion.name,
+                modelName: 'Upscaling with ImageMagick',
+                description: '# Upscaling with ImageMagick \n\n https://imagemagick.org\\n\\nImageMagick Tool을 이용한 Bicubic 업스케일링 모델입니다.',
+                inputType: ModelInputType.IMAGE,
+                outputType: ModelOutputType.IMAGE,
+                category: 'Super Resolution',
+                parameters: {
+                    'schema': {
+                        'properties': {
+                            'upscalingFactor': {
+                                'type': 'number',
+                                'enum': [
+                                    25,
+                                    50,
+                                    100,
+                                    125,
+                                    150,
+                                    200,
+                                    300,
+                                    400
+                                ]
+                            },
+                            'debugLog': {
+                                'type': 'boolean'
+                            }
+                        }
+                    },
+                    'uischema': {
+                        'type': 'VerticalLayout',
+                        'elements': [
+                            {
+                                'type': 'Control',
+                                'label': 'Upscaling factor (%)',
+                                'scope': '#/properties/upscalingFactor'
+                            },
+                            {
+                                'type': 'Control',
+                                'label': 'Debug log',
+                                'scope': '#/properties/debugLog'
+                            }
+                        ]
+                    },
+                    'data': {
+                        'upscalingFactor': 200,
+                        'debugLog': true
+                    }
+                },
+                imageName: 'upscaling-imagemagick:latest'
             });
         } catch (e) {
             console.error(e);
