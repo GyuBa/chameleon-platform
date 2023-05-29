@@ -527,6 +527,21 @@ describe('Initialize System', () => {
                 })).data
             });
 
+            console.log('Creating test6:files-input-model');
+            await PlatformAPI.signIn('test6@test.com', 'test');
+            await PlatformAPI.uploadModelWithDockerfile({
+                regionName: mainRegion.name,
+                modelName: 'HTML Output Model',
+                description: '# HTML Output Model \n\n 입력 HTML을 그대로 출력합니다.',
+                inputType: ModelInputType.BINARY,
+                outputType: ModelOutputType.HTML,
+                parameters: exampleParameters,
+                files: [(await PlatformAPI.instance.get('http://files.chameleon.best/dockerfiles/SimpleEcho/Dockerfile', {
+                    responseType: 'stream'
+                })).data],
+                price: 0
+            });
+
             const mongle = accounts.find(u => u.username === 'mongle');
             console.log(`Creating ${mongle.username}:sound-modulation`);
             await PlatformAPI.signIn(mongle.email, mongle.password);
@@ -1035,6 +1050,100 @@ describe('Initialize System', () => {
                 category: 'Super Resolution',
                 price: 200
             });
+            await PlatformAPI.uploadModelWithImage({
+                regionName: subRegion.name,
+                modelName: 'Stable Diffusion',
+                description: '# Stable Diffusion\n' +
+                    '*Stable Diffusion was made possible thanks to a collaboration with [Stability AI](https://stability.ai/) and [Runway](https://runwayml.com/) and builds upon our previous work:*\n' +
+                    '\n' +
+                    '[**High-Resolution Image Synthesis with Latent Diffusion Models**](https://ommer-lab.com/research/latent-diffusion-models/)<br/>\n' +
+                    '[Robin Rombach](https://github.com/rromb)\\*,\n' +
+                    '[Andreas Blattmann](https://github.com/ablattmann)\\*,\n' +
+                    '[Dominik Lorenz](https://github.com/qp-qp)\\,\n' +
+                    '[Patrick Esser](https://github.com/pesser),\n' +
+                    '[Björn Ommer](https://hci.iwr.uni-heidelberg.de/Staff/bommer)<br/>\n' +
+                    '_[CVPR \'22 Oral](https://openaccess.thecvf.com/content/CVPR2022/html/Rombach_High-Resolution_Image_Synthesis_With_Latent_Diffusion_Models_CVPR_2022_paper.html) |\n' +
+                    '[GitHub](https://github.com/CompVis/latent-diffusion) | [arXiv](https://arxiv.org/abs/2112.10752) | [Project page](https://ommer-lab.com/research/latent-diffusion-models/)_\n' +
+                    '\n' +
+                    '![txt2img-stable2](https://github.com/Koreatech-Mongle/chameleon-platform/assets/87463004/ba198528-592b-446f-bfd2-ea962cc727c5)\n' +
+                    '[Stable Diffusion](#stable-diffusion-v1) is a latent text-to-image diffusion\n' +
+                    'model.\n' +
+                    'Thanks to a generous compute donation from [Stability AI](https://stability.ai/) and support from [LAION](https://laion.ai/), we were able to train a Latent Diffusion Model on 512x512 images from a subset of the [LAION-5B](https://laion.ai/blog/laion-5b/) database. \n' +
+                    'Similar to Google\'s [Imagen](https://arxiv.org/abs/2205.11487), \n' +
+                    'this model uses a frozen CLIP ViT-L/14 text encoder to condition the model on text prompts.\n' +
+                    'With its 860M UNet and 123M text encoder, the model is relatively lightweight and runs on a GPU with at least 10GB VRAM.\n' +
+                    'See [this section](#stable-diffusion-v1) below and the [model card](https://huggingface.co/CompVis/stable-diffusion).',
+                inputType: ModelInputType.EMPTY,
+                outputType: ModelOutputType.ZIP_GALLERY,
+                category: 'Stable Diffusion',
+                parameters: {
+                    schema: {
+                        'type': 'object',
+                        'properties': {
+                            'prompt': {
+                                'type': 'string',
+                                'description': 'Enter a description of the image you want to create.'
+                            },
+                            'ddim_steps': {
+                                'type': 'number',
+                                'description': 'Number of sampling steps in the Diffusion process.',
+                                'minimum': 1,
+                                'maximum': 500,
+                            },
+                            'n_iter': {
+                                'type': 'integer',
+                                'description': 'A count of how many times to repeat image creation.',
+                                'minimum': 1,
+                                'maximum': 10,
+                            },
+                            'H': {
+                                'type': 'number',
+                                'description': 'Height',
+                                'minimum': 256,
+                                'maximum': 1024,
+                                'enum': [256, 512, 1024]
+                            },
+                            'W': {
+                                'type': 'number',
+                                'description': 'Width',
+                                'minimum': 256,
+                                'maximum': 1024,
+                                'enum': [256, 512, 1024]
+                            },
+                            'scale': {
+                                'type': 'number',
+                            },
+                            'seed': {
+                                'type': 'number',
+                            }
+                        }
+                    },
+
+                    uischema: {
+                        'type': 'VerticalLayout',
+                        'elements': [{'type': 'Control', 'scope': '#/properties/prompt'}, {
+                            'type': 'Control',
+                            'scope': '#/properties/H'
+                        }, {'type': 'Control', 'scope': '#/properties/W'}, {
+                            'type': 'Control',
+                            'scope': '#/properties/n_iter'
+                        }, {'type': 'Control', 'scope': '#/properties/seed'}, {
+                            'type': 'Control',
+                            'scope': '#/properties/ddim_steps'
+                        }, {'type': 'Control', 'scope': '#/properties/scale'}]
+                    },
+                    data: {
+                        'ddim_steps': 50,
+                        'H': 512,
+                        'n_iter': 1,
+                        'W': 512,
+                        'scale': 7.5,
+                        'seed': 42
+                    }
+                },
+                imageName: 'stable-diffusion',
+                price: Math.floor(Math.random() * 1000 + 100)
+            });
 
             await PlatformAPI.signIn('test@test.com', 'test');
             for (const dummy of dummies) {
@@ -1059,100 +1168,6 @@ describe('Initialize System', () => {
         }
     }, 60 * 60 * 1000);
     test('Add images V2', async () => {
-        await PlatformAPI.signIn('test@test.com', 'test');
-        await PlatformAPI.uploadModelWithImage({
-            regionName: subRegion.name,
-            modelName: 'Stable Diffusion',
-            description: '# Stable Diffusion\n' +
-                '*Stable Diffusion was made possible thanks to a collaboration with [Stability AI](https://stability.ai/) and [Runway](https://runwayml.com/) and builds upon our previous work:*\n' +
-                '\n' +
-                '[**High-Resolution Image Synthesis with Latent Diffusion Models**](https://ommer-lab.com/research/latent-diffusion-models/)<br/>\n' +
-                '[Robin Rombach](https://github.com/rromb)\\*,\n' +
-                '[Andreas Blattmann](https://github.com/ablattmann)\\*,\n' +
-                '[Dominik Lorenz](https://github.com/qp-qp)\\,\n' +
-                '[Patrick Esser](https://github.com/pesser),\n' +
-                '[Björn Ommer](https://hci.iwr.uni-heidelberg.de/Staff/bommer)<br/>\n' +
-                '_[CVPR \'22 Oral](https://openaccess.thecvf.com/content/CVPR2022/html/Rombach_High-Resolution_Image_Synthesis_With_Latent_Diffusion_Models_CVPR_2022_paper.html) |\n' +
-                '[GitHub](https://github.com/CompVis/latent-diffusion) | [arXiv](https://arxiv.org/abs/2112.10752) | [Project page](https://ommer-lab.com/research/latent-diffusion-models/)_\n' +
-                '\n' +
-                '![txt2img-stable2](https://github.com/Koreatech-Mongle/chameleon-platform/assets/87463004/ba198528-592b-446f-bfd2-ea962cc727c5)\n' +
-                '[Stable Diffusion](#stable-diffusion-v1) is a latent text-to-image diffusion\n' +
-                'model.\n' +
-                'Thanks to a generous compute donation from [Stability AI](https://stability.ai/) and support from [LAION](https://laion.ai/), we were able to train a Latent Diffusion Model on 512x512 images from a subset of the [LAION-5B](https://laion.ai/blog/laion-5b/) database. \n' +
-                'Similar to Google\'s [Imagen](https://arxiv.org/abs/2205.11487), \n' +
-                'this model uses a frozen CLIP ViT-L/14 text encoder to condition the model on text prompts.\n' +
-                'With its 860M UNet and 123M text encoder, the model is relatively lightweight and runs on a GPU with at least 10GB VRAM.\n' +
-                'See [this section](#stable-diffusion-v1) below and the [model card](https://huggingface.co/CompVis/stable-diffusion).',
-            inputType: ModelInputType.EMPTY,
-            outputType: ModelOutputType.ZIP_GALLERY,
-            category: 'Stable Diffusion',
-            parameters: {
-                schema: {
-                    'type': 'object',
-                    'properties': {
-                        'prompt': {
-                            'type': 'string',
-                            'description': 'Enter a description of the image you want to create.'
-                        },
-                        'ddim_steps': {
-                            'type': 'number',
-                            'description': 'Number of sampling steps in the Diffusion process.',
-                            'minimum': 1,
-                            'maximum': 500,
-                        },
-                        'n_iter': {
-                            'type': 'integer',
-                            'description': 'A count of how many times to repeat image creation.',
-                            'minimum': 1,
-                            'maximum': 10,
-                        },
-                        'H': {
-                            'type': 'number',
-                            'description': 'Height',
-                            'minimum': 256,
-                            'maximum': 1024,
-                            'enum': [256, 512, 1024]
-                        },
-                        'W': {
-                            'type': 'number',
-                            'description': 'Width',
-                            'minimum': 256,
-                            'maximum': 1024,
-                            'enum': [256, 512, 1024]
-                        },
-                        'scale': {
-                            'type': 'number',
-                        },
-                        'seed': {
-                            'type': 'number',
-                        }
-                    }
-                },
-
-                uischema: {
-                    'type': 'VerticalLayout',
-                    'elements': [{'type': 'Control', 'scope': '#/properties/prompt'}, {
-                        'type': 'Control',
-                        'scope': '#/properties/H'
-                    }, {'type': 'Control', 'scope': '#/properties/W'}, {
-                        'type': 'Control',
-                        'scope': '#/properties/n_iter'
-                    }, {'type': 'Control', 'scope': '#/properties/seed'}, {
-                        'type': 'Control',
-                        'scope': '#/properties/ddim_steps'
-                    }, {'type': 'Control', 'scope': '#/properties/scale'}]
-                },
-                data: {
-                    'ddim_steps': 50,
-                    'H': 512,
-                    'n_iter': 1,
-                    'W': 512,
-                    'scale': 7.5,
-                    'seed': 42
-                }
-            },
-            imageName: 'stable-diffusion',
-            price: Math.floor(Math.random() * 1000 + 100)
-        });
+        /* empty */
     }, 60 * 60 * 1000);
 });
