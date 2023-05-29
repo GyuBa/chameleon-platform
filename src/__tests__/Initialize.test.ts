@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import {PointHistoryController} from '../controller/PointHistoryController';
 import {PointHistory} from '../entities/PointHistory';
 import {clearInterval} from 'timers';
+import {User} from '../entities/User';
 
 const initConfig = JSON.parse(fs.readFileSync('initialize.json', 'utf-8'));
 const mainRegion = new Region();
@@ -32,6 +33,8 @@ dummyRegion.name = initConfig.dummyRegion.name;
 dummyRegion.host = initConfig.dummyRegion.host;
 dummyRegion.port = initConfig.dummyRegion.port;
 dummyRegion.cacheSize = initConfig.dummyRegion.cacheSize;
+
+const accounts = initConfig.accounts as User[];
 
 const dummies = [{
     modelName: 'Text Summarization',
@@ -538,31 +541,34 @@ describe('Initialize System', () => {
                     price: Math.floor(Math.random() * 1000 + 100)
                 });
             }
-            console.log('Creating test7:sound-modulation');
-            await PlatformAPI.signIn('test7@test.com', 'test');
+                
+            const mongle = accounts.find(u => u.username === 'mongle');
+            console.log(`Creating ${mongle.username}:sound-modulation`);
+            await PlatformAPI.signIn(mongle.email, mongle.password);
             await PlatformAPI.uploadModelWithImage({
+                price: 150,
                 regionName: mainRegion.name,
                 modelName: 'Sound Modulation',
                 description: '# Sound Modulation\n' +
-                    '이 모델은 `equalizer`를 이용하여 음성을 변조합니다.\n' +
-                    '\n' +
-                    '- `pitch` (-1000\\~1000)\n' +
-                    '  음성의 `pitch`를 조절합니다.(템포 변경이 아님)\n' +
-                    '\n' +
-                    '- `contrast`(0\\~100)\n' +
-                    '  이 효과는 압축과 유사하게 동작하며, 오디오 신호를 더 크게 들리게 수정합니다. 수치는 0~100 범위로 0은 대비량을 극대화 시킵니다.\n' +
-                    '  \n' +
-                    '- `echo` (boolean)\n' +
-                    '  아래 `echo` 옵션을 적용합니다.\n' +
-                    '  \n' +
-                    '```json\n' +
-                    '{\n' +
-                    ' gain_in : 0,\n' +
-                    ' gain_out : 1,\n' +
-                    ' delay : 20,\n' +
-                    ' decay : 0.4\n' +
-                    '}\n' +
-                    '```',
+                        '이 모델은 `equalizer`를 이용하여 음성을 변조합니다.\n' +
+                        '\n' +
+                        '- `pitch` (-1000\\~1000)\n' +
+                        '  음성의 `pitch`를 조절합니다.(템포 변경이 아님)\n' +
+                        '\n' +
+                        '- `contrast`(0\\~100)\n' +
+                        '  이 효과는 압축과 유사하게 동작하며, 오디오 신호를 더 크게 들리게 수정합니다. 수치는 0~100 범위로 0은 대비량을 극대화 시킵니다.\n' +
+                        '  \n' +
+                        '- `echo` (boolean)\n' +
+                        '  아래 `echo` 옵션을 적용합니다.\n' +
+                        '  \n' +
+                        '```json\n' +
+                        '{\n' +
+                        ' gain_in : 0,\n' +
+                        ' gain_out : 1,\n' +
+                        ' delay : 20,\n' +
+                        ' decay : 0.4\n' +
+                        '}\n' +
+                        '```',
                 inputType: ModelInputType.SOUND,
                 outputType: ModelOutputType.SOUND,
                 category: 'Sound Processing',
@@ -627,9 +633,7 @@ describe('Initialize System', () => {
                 },
                 imageName: 'sound-modulation:latest'
             });
-
-            console.log('Creating test8:image-captioning');
-            await PlatformAPI.signIn('test8@test.com', 'test');
+            console.log(`Creating ${mongle.username}:image-captioning`);
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Image Captioning',
@@ -641,8 +645,7 @@ describe('Initialize System', () => {
                 imageName: 'image-captioning:latest'
             });
 
-            console.log('Creating test9:object-detection');
-            await PlatformAPI.signIn('test9@test.com', 'test');
+            console.log(`Creating ${mongle.username}:object-detection`);
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Object Detection',
@@ -700,8 +703,7 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
                 imageName: 'object-detection:latest'
             });
 
-            console.log('Creating test10:sentence-generator');
-            await PlatformAPI.signIn('test10@test.com', 'test');
+            console.log(`Creating ${mongle.username}:sentence-generator`);
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Sentence Generator',
@@ -951,8 +953,7 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
                 imageName: 'sentence-generator:latest'
             });
 
-            console.log('Creating test1:upscaling-with-imagemagick');
-            await PlatformAPI.signIn('test1@test.com', 'test');
+            console.log(`Creating ${mongle.username}:upscaling-with-imagemagick`);
             await PlatformAPI.uploadModelWithImage({
                 regionName: mainRegion.name,
                 modelName: 'Upscaling with ImageMagick',
@@ -1003,9 +1004,14 @@ yolo detect predict model="$model" source="/opt/mctr/i/raw.mp4"
                 },
                 imageName: 'upscaling-imagemagick:latest'
             });
-        } catch (e) {
+        } catch
+        (e) {
             console.error(e);
             fail(e.response.data);
         }
-    }, 60 * 60 * 1000);
+    }
+    ,
+    60 * 60 * 1000
+    )
+    ;
 });
