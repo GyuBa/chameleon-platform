@@ -12,6 +12,9 @@ export class Region extends Common {
     @Column()
         port: number;
 
+    @Column({default: false})
+        useGPU: boolean;
+
     @Column()
         cacheSize: number;
 }
