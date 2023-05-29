@@ -87,7 +87,15 @@ export class ModelExecutionManager extends ServiceManager {
     async createCachedContainer(docker: Dockerode, model: Model, keepRunning?: boolean) {
         const container = await docker.createContainer({
             Image: model.image.uniqueId,
-            Tty: true
+            Tty: true,
+            HostConfig: {
+                DeviceRequests: [{
+                    'Driver': 'nvidia',
+                    'Count': -1,
+                    'Capabilities': [['gpu']],
+                    'Options': {},
+                }]
+            }
         });
         const history = new History();
         history.containerId = container.id;
