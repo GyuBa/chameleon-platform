@@ -212,7 +212,7 @@ export enum WSMessageType {
     READY = 'Ready',
     PATH = 'Path',
     TERMINAL_RESIZE = 'TerminalResize',
-    TERMINAL = 'Terminal',
+    TERMINAL_BUFFER = 'TerminalBuffer',
     UPDATE_MODEL = 'UpdateModel',
     UPDATE_MODELS = 'UpdateModels',
     UPDATE_HISTORY = 'UpdateHistory',
@@ -240,9 +240,9 @@ export type WSUpdateHistoryMessage = {
     history: HistoryEntityData
 }
 
-export type WSTerminalMessage = {
-    msg: WSMessageType.TERMINAL;
-    data: string;
+export type WSTerminalBufferMessage = {
+    msg: WSMessageType.TERMINAL_BUFFER;
+    data: string[];
 }
 
 
@@ -251,6 +251,7 @@ export enum SocketMessageType {
     FILE_WAIT = 'FileWait',
     FILE_RECEIVE_END = 'FileReceiveEnd',
     TERMINAL = 'Terminal',
+    TERMINAL_BUFFER = 'TerminalBuffer',
     TERMINAL_RESIZE = 'TerminalResize',
     PROCESS_END = 'ProcessEnd',
     FILE = 'File',
@@ -271,6 +272,10 @@ export type SocketFileReceiveEndMessage = { msg: SocketMessageType.FILE_RECEIVE_
 export type SocketTerminalMessage = {
     msg: SocketMessageType.TERMINAL;
     data: string
+};
+export type SocketTerminalBufferMessage = {
+    msg: SocketMessageType.TERMINAL_BUFFER;
+    data: string[]
 };
 export type SocketTerminalResizeMessage = {
     msg: SocketMessageType.TERMINAL_RESIZE;

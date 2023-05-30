@@ -45,7 +45,7 @@ export type DefaultSocketData = {
     isMainConnection: boolean;
     executionData?: ExecutionData;
     executedHistory?: History;
-    terminalBuffer: string;
+    terminalBuffer: string[];
     terminalBufferingLock: boolean;
     terminalDatabaseLock: boolean;
     buffer: string;

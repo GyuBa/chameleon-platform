@@ -160,22 +160,24 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
         };
 
         this.handles[SocketMessageType.TERMINAL] = (server: DefaultSocketServer, socket: DefaultSocket, message: SocketTerminalMessage) => {
-            socket.data.terminalBuffer += message.data;
+            socket.data.terminalBuffer.push(message.data);
             const history = socket.data.history;
 
             if (!socket.data.terminalBufferingLock) {
                 socket.data.terminalBufferingLock = true;
                 setTimeout(() => {
-                    socket.data.terminal.write(socket.data.terminalBuffer, () => {
-                        history.terminal = socket.data.terminalSerializer.serialize();
-                    });
+                    for(const terminal of socket.data.terminalBuffer){
+                        socket.data.terminal.write(terminal, () => {
+                            history.terminal = socket.data.terminalSerializer.serialize();
+                        });
+                    }
                     const targetSockets = PlatformServer.wsServer.manager.getHistoryRelatedSockets(history);
-                    PlatformServer.wsServer.manager.sendTerminal(socket.data.terminalBuffer, targetSockets);
+                    PlatformServer.wsServer.manager.sendTerminalBuffer(socket.data.terminalBuffer, targetSockets);
                     if (history.parent) {
-                        server.manager.sendTerminal(socket.data.terminalBuffer, [server.manager.getExecutorSocket(history)]);
+                        server.manager.sendTerminalBuffer(socket.data.terminalBuffer, [server.manager.getExecutorSocket(history)]);
                     }
 
-                    socket.data.terminalBuffer = '';
+                    socket.data.terminalBuffer = [];
                     socket.data.terminalBufferingLock = false;
                 }, 100);
             }
@@ -227,7 +229,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
             if (history.parent) {
                 const executorSocket = server.manager.getExecutorSocket(history);
                 await server.manager.sendFile(executorSocket, history.outputPath, executorSocket.data.executionData.outputPath);
-                await server.manager.sendExit(0);
+                await server.manager.sendExit(0, undefined, [executorSocket]);
             }
 
             console.log(`[${DateUtils.getConsoleTime()} | Socket, ${socket.remoteAddress}] (History: ${history.id}) ClearContainer - Container: ${history.containerId}`);
@@ -240,7 +242,7 @@ export default class DefaultSocketHandler extends PlatformService implements Soc
 
     onReady(server: DefaultSocketServer, socket: DefaultSocket) {
         socket.data.buffer = '';
-        socket.data.terminalBuffer = '';
+        socket.data.terminalBuffer = [];
         socket.data.terminalBufferingLock = false;
         socket.data.receiveMode = SocketReceiveMode.JSON;
     }

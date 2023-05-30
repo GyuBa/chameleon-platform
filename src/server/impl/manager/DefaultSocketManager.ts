@@ -1,15 +1,20 @@
 import SocketManager from '../../manager/SocketManager';
 import {
-    LaunchOptions, SocketExitMessage,
-    SocketFileMessage, SocketLaunchModelMessage,
-    SocketMessageType, SocketRequestFileMessage, SocketTerminalMessage, SocketTerminalResizeMessage,
-    TerminalResizeOption, WSMessageType, WSTerminalMessage
+    LaunchOptions,
+    SocketExitMessage,
+    SocketFileMessage,
+    SocketLaunchModelMessage,
+    SocketMessageType,
+    SocketRequestFileMessage,
+    SocketTerminalBufferMessage,
+    SocketTerminalResizeMessage,
+    TerminalResizeOption
 } from '../../../types/chameleon-platform.common';
 import * as fs from 'fs';
 import * as stream from 'stream';
 import * as streams from 'memory-streams';
 import {History} from '../../../entities/History';
-import {DefaultSocket, DefaultWSocket} from '../../../types/chameleon-platform';
+import {DefaultSocket} from '../../../types/chameleon-platform';
 
 export default class DefaultSocketManager extends SocketManager {
     getAllSockets() {
@@ -25,7 +30,7 @@ export default class DefaultSocketManager extends SocketManager {
     }
 
     getExecutorSocket(history: History) {
-        return this.getHistorySockets(history.parent).filter(s => s.data.executedHistory.id === history.id).pop();
+        return this.getHistorySockets(history.parent).filter(s => s.data?.executedHistory && s.data.executedHistory.id === history.id).pop();
     }
 
     json(data: any, sockets: DefaultSocket[] = this.getAllSockets()) {
@@ -76,7 +81,7 @@ export default class DefaultSocketManager extends SocketManager {
         this.json({msg: SocketMessageType.EXIT, code, message} as SocketExitMessage, sockets);
     }
 
-    sendTerminal(data: string, sockets: DefaultSocket[] = this.getAllSockets()) {
-        this.json({msg: SocketMessageType.TERMINAL, data} as SocketTerminalMessage, sockets);
+    sendTerminalBuffer(data: string[], sockets: DefaultSocket[] = this.getAllSockets()) {
+        this.json({msg: SocketMessageType.TERMINAL_BUFFER, data} as SocketTerminalBufferMessage, sockets);
     }
 }
