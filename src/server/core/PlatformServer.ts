@@ -53,8 +53,9 @@ export default class PlatformServer {
                 imp: {
                     key: '',
                     secret: ''
-                }
-            }, null, 4), 'utf8');
+                },
+                maxCLIExecutionDepth: 5
+            } as PlatformConfig, null, 4), 'utf8');
         }
         PlatformServer.config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
         if (!fs.existsSync('uploads/outputs')) {

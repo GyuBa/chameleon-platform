@@ -11,6 +11,12 @@ import {DockerUtils} from '../../utils/DockerUtils';
 
 export class ModelExecutionManager extends ServiceManager {
     async executeModel(model: Model, executionOptions: ModelExecutionOptions): Promise<History> {
+        if (executionOptions?.parent && executionOptions?.parent?.numberOfParents >= PlatformServer.config.maxCLIExecutionDepth) {
+            console.log((`[${DateUtils.getConsoleTime()}] (Model: ${model.name}) MaxCLIExecutionDepth: ${executionOptions.parent.numberOfParents}`));
+            throw new Error('MaxCLIExecutionDepthError');
+            // TODO: 이 분기 처리 개선 필요함
+        }
+
         const image = model.image;
         const region = model.image.region;
         const docker = new Dockerode(region);

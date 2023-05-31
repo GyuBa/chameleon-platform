@@ -80,6 +80,7 @@ export type PlatformConfig = {
     socketPort: number;
     httpPort: number;
     debugMode: boolean;
+    maxCLIExecutionDepth: number;
     db: MysqlConnectionOptions;
     imp: {key: string, secret: string}
 };
