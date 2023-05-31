@@ -1147,6 +1147,63 @@ describe('Initialize System', () => {
                 price: Math.floor(Math.random() * 1000 + 100)
             });
 
+            await PlatformAPI.uploadModelWithImage({
+                regionName: mainRegion.name,
+                modelName: 'Compare Upscaling Models',
+                description: '# Compare Upscaling Models\n' +
+                    '플랫폼에 있는 여러 업스케일링 모델의 출력값을 비교하여 차이 이미지를 생성하고, PSNR(최대 신호 대 잡음비)과 SSIM(구조적 유사 지수)를 출력합니다.\n' +
+                    '\n' +
+                    '지원 모델 (upscaling-with-imagemagick, upscaling-ai 모델 사용)\n' +
+                    ' - Bicubic: 쌍삼차 보간을 이용하는 업스케일링 모델입니다.\n' +
+                    ' - SwinIR: 기본 SwinIR 구조를 사용하는 업스케일링 모델입니다.\n' +
+                    ' - CCTV 학습 모델 (SwinIR_GAN_CCTV): 공원과 바닷가의 CCTV 이미지들을 중점으로 학습한 모델로, CCTV 이미지의 특징인 위에서 아래로 내려다보는 구도의 이미지에 대하여 높은 품질을 기대할 수 있습니다.\n' +
+                    ' - 블랙박스 학습 모델 (SwinIR_GAN_Blackbox): 자동차의 블랙박스 이미지들을 중점으로 학습한 모델로, 도로 환경의 이미지에 대하여 높은 품질을 기대할 수 있습니다.\n' +
+                    ' - 일반 학습 모델 (HAT): 일반적인 이미지들을 이용하여 학습한 모델로, 범용적으로 일반적인 이미지에 대하여 높은 품질을 기대할 수 있습니다.',
+                cacheSize: 0,
+                inputType: ModelInputType.IMAGE,
+                outputType: ModelOutputType.HTML,
+                category: 'Compare Tool',
+                parameters: {
+                    'data': {
+                        'models': [{
+                            'name': 'SwinIR'
+                        }]
+                    },
+                    'schema': {
+                        'properties': {
+                            'models': {
+                                'type': 'array',
+                                'items': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'name': {
+                                            'enum': [
+                                                'SwinIR',
+                                                'SwinIR_GAN_CCTV',
+                                                'SwinIR_GAN_Blackbox',
+                                                'HAT',
+                                                'Bicubic'
+                                            ],
+                                            'type': 'string'
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    },
+                    'uischema': {
+                        'type': 'VerticalLayout',
+                        'elements': [{
+                            'type': 'Control',
+                            'label': 'Compare models',
+                            'scope': '#/properties/models'
+                        }]
+                    }
+                },
+                imageName: 'compare-upscaling-models',
+                price: Math.floor(Math.random() * 1000 + 100)
+            });
+
             await PlatformAPI.signIn('test@test.com', 'test');
             for (const dummy of dummies) {
                 console.log(`Creating ${dummy.modelName}`);
