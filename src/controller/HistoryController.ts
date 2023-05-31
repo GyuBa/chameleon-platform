@@ -60,6 +60,7 @@ export class HistoryController extends BaseController<History> {
             return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
                 .where('Executor.id=:executorId', {executorId})
+                .orderBy('History.startedTime', 'ASC')
                 .getMany();
         } catch (e) {
             console.error(e);
@@ -73,6 +74,7 @@ export class HistoryController extends BaseController<History> {
                 .select()
                 .where('Executor.id=:executorId', {executorId})
                 .where('History.price > 0')
+                .orderBy('History.startedTime', 'ASC')
                 .getMany();
         } catch (e) {
             console.error(e);
@@ -85,6 +87,7 @@ export class HistoryController extends BaseController<History> {
             return HistoryController.selectWithJoin(this.repository.createQueryBuilder())
                 .select()
                 .where('Model.id=:modelId', {modelId})
+                .orderBy('History.startedTime', 'ASC')
                 .getMany();
         } catch (e) {
             console.error(e);
