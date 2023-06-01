@@ -242,7 +242,7 @@ export type WSUpdateHistoryMessage = {
 
 export type WSTerminalBufferMessage = {
     msg: WSMessageType.TERMINAL_BUFFER;
-    data: string[];
+    data: string;
 }
 
 
@@ -275,7 +275,7 @@ export type SocketTerminalMessage = {
 };
 export type SocketTerminalBufferMessage = {
     msg: SocketMessageType.TERMINAL_BUFFER;
-    data: string[]
+    data: string
 };
 export type SocketTerminalResizeMessage = {
     msg: SocketMessageType.TERMINAL_RESIZE;
@@ -400,7 +400,7 @@ export type ModelConfig = {
     }
 }
 
-export type TerminalResizeOption = {
+export type TerminalSizeOptions = {
     rows: number;
     cols: number;
 }
@@ -431,7 +431,7 @@ export const SitePaths = {
     CREATE_MODEL_INFO: '/models/create/info',
     CREATE_MODEL_DESCRIPTION: '/models/create/description',
     CREATE_MODEL_PARAMETERS: '/models/create/parameters',
-    HISTORY: (historyId: number | string) => `/history/${Number.isInteger(historyId) ? (historyId as number + 1) : historyId}`,
+    HISTORY: (historyId: number | string) => `/history/${Number.isInteger(historyId) ? (historyId as number) : historyId}`,
     HISTORY_RAW: '/history',
     HISTORIES: '/histories',
     ACCOUNT: '/account',

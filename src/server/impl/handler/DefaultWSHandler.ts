@@ -4,10 +4,10 @@ import {PlatformService} from '../../../service/interfaces/PlatformService';
 import PlatformServer from '../../core/PlatformServer';
 import {WSMessageType, WSPathMessage, WSTerminalResizeMessage} from '../../../types/chameleon-platform.common';
 import {DateUtils} from '../../../utils/DateUtils';
+import {User} from '../../../entities/User';
 
 
 export default class DefaultWSHandler extends PlatformService implements WebSocketHandler<DefaultWSServer, DefaultWSocket> {
-
     readonly handles: { [messageType: string]: WebSocketHandle } = {};
 
     constructor() {
@@ -19,15 +19,18 @@ export default class DefaultWSHandler extends PlatformService implements WebSock
         };
 
         this.handles[WSMessageType.TERMINAL_RESIZE] = async (server: DefaultWSServer, socket: DefaultWSocket, data: WSTerminalResizeMessage) => {
-            if (!socket.req.isAuthenticated() || data.historyId) {
+            if (!socket.req.isAuthenticated()) {
                 return;
             }
-            const history = await this.historyController.findById(data.historyId);
-            const historyMainSocket = PlatformServer.socketServer.manager.getHistoryMainSocket(history);
             const resizeOptions = {rows: data.rows > 0 ? data.rows : 1, cols: data.cols > 0 ? data.cols : 1};
-            console.log(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
-            if (historyMainSocket) {
-                PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, [historyMainSocket]);
+            this.terminalOptionMap.set((socket.req.user as User).id, resizeOptions);
+            if (data.historyId) {
+                const history = await this.historyController.findById(data.historyId);
+                const historyMainSocket = PlatformServer.socketServer.manager.getHistoryMainSocket(history);
+                console.log(`[${DateUtils.getConsoleTime()} | WebSocket, ${socket.req.ip}] TerminalResize - Rows: ${resizeOptions.rows}, Cols: ${resizeOptions.cols}`);
+                if (historyMainSocket) {
+                    PlatformServer.socketServer.manager.sendTerminalResize(resizeOptions, [historyMainSocket]);
+                }
             }
         };
     }

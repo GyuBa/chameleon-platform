@@ -6,17 +6,22 @@ import {RegionController} from '../../controller/RegionController';
 import {DataSource} from 'typeorm';
 import {SessionController} from '../../controller/SessionController';
 import {HistoryController} from '../../controller/HistoryController';
-import {ModelExecutionManager} from "../manager/ModelExecutionManager";
-import {PointHistoryController} from "../../controller/PointHistoryController";
-import {EarnedPointHistory} from "../../entities/EarnedPointHistory";
-import {EarnedPointHistoryController} from "../../controller/EarnedPointHistoryController";
+import {ModelExecutionManager} from '../manager/ModelExecutionManager';
+import {PointHistoryController} from '../../controller/PointHistoryController';
+import {EarnedPointHistoryController} from '../../controller/EarnedPointHistoryController';
+import {TerminalSizeOptions} from '../../types/chameleon-platform.common';
 
 
 export class PlatformService {
     private static thisService = new PlatformService();
     private static staticMap: Map<Function, any>;
-
     public containerCachingLock = new Map<number, boolean>();
+    private static _terminalOptionMap = new Map<number, TerminalSizeOptions>();
+    // TODO: 리팩토링 적용
+
+    public get terminalOptionMap(): Map<number, TerminalSizeOptions> {
+        return PlatformService._terminalOptionMap;
+    }
 
     public get imageController(): ImageController {
         return PlatformService.getController(ImageController);

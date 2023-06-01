@@ -45,7 +45,7 @@ export type DefaultSocketData = {
     isMainConnection: boolean;
     executionData?: ExecutionData;
     executedHistory?: History;
-    terminalBuffer: string[];
+    terminalBuffer: string;
     terminalBufferingLock: boolean;
     terminalDatabaseLock: boolean;
     buffer: string;
@@ -82,7 +82,7 @@ export type PlatformConfig = {
     debugMode: boolean;
     maxCLIExecutionDepth: number;
     db: MysqlConnectionOptions;
-    imp: {key: string, secret: string}
+    imp: { key: string, secret: string }
 };
 
 export type ModelExecutionOptions = {

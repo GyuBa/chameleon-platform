@@ -37,7 +37,7 @@ export default class DefaultWSManager extends WSManager {
         this.json({msg: WSMessageType.UPDATE_HISTORY, history: history.toData()} as WSUpdateHistoryMessage, sockets);
     }
 
-    sendTerminalBuffer(data: string[], sockets: DefaultWSocket[] = this.getAllSockets()) {
+    sendTerminalBuffer(data: string, sockets: DefaultWSocket[] = this.getAllSockets()) {
         this.json({msg: WSMessageType.TERMINAL_BUFFER, data} as WSTerminalBufferMessage, sockets);
     }
 

@@ -53,8 +53,9 @@ export class ModelService extends HTTPService {
 
     async handleExecute(req: Request, res: Response, next: Function) {
         if (!req.isAuthenticated()) res.status(401).send({msg: 'not_authenticated_error'} as ResponseData);
-        const {parameters: rawParameters, modelId} = req.body;
+        const {parameters: rawParameters, modelId, terminalSizeOptions: rawTerminalSizeOptions} = req.body;
         if (!(rawParameters && modelId && req.file)) return res.status(501).send({msg: 'non_field_error'} as ResponseData);
+
         const parameters = JSON.parse(rawParameters);
         const executor: User = req.user as User;
         const model: Model = await this.modelController.findById(modelId);

@@ -8,7 +8,7 @@ import {
     SocketRequestFileMessage,
     SocketTerminalBufferMessage,
     SocketTerminalResizeMessage,
-    TerminalResizeOption
+    TerminalSizeOptions
 } from '../../../types/chameleon-platform.common';
 import * as fs from 'fs';
 import * as stream from 'stream';
@@ -73,15 +73,15 @@ export default class DefaultSocketManager extends SocketManager {
         return socket.data.writeStream.toString();
     }
 
-    sendTerminalResize(resizeOptions: TerminalResizeOption, sockets: DefaultSocket[] = this.getAllSockets()) {
-        this.json({msg: SocketMessageType.TERMINAL_RESIZE, ...resizeOptions} as SocketTerminalResizeMessage, sockets);
+    sendTerminalResize(terminalSizeOptions: TerminalSizeOptions, sockets: DefaultSocket[] = this.getAllSockets()) {
+        this.json({msg: SocketMessageType.TERMINAL_RESIZE, ...terminalSizeOptions} as SocketTerminalResizeMessage, sockets);
     }
 
     sendExit(code: number, message?: string, sockets: DefaultSocket[] = this.getAllSockets()) {
         this.json({msg: SocketMessageType.EXIT, code, message} as SocketExitMessage, sockets);
     }
 
-    sendTerminalBuffer(data: string[], sockets: DefaultSocket[] = this.getAllSockets()) {
+    sendTerminalBuffer(data: string, sockets: DefaultSocket[] = this.getAllSockets()) {
         this.json({msg: SocketMessageType.TERMINAL_BUFFER, data} as SocketTerminalBufferMessage, sockets);
     }
 }
