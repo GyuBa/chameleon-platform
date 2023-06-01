@@ -1159,7 +1159,6 @@ describe('Initialize System', () => {
                     ' - CCTV 학습 모델 (SwinIR_GAN_CCTV): 공원과 바닷가의 CCTV 이미지들을 중점으로 학습한 모델로, CCTV 이미지의 특징인 위에서 아래로 내려다보는 구도의 이미지에 대하여 높은 품질을 기대할 수 있습니다.\n' +
                     ' - 블랙박스 학습 모델 (SwinIR_GAN_Blackbox): 자동차의 블랙박스 이미지들을 중점으로 학습한 모델로, 도로 환경의 이미지에 대하여 높은 품질을 기대할 수 있습니다.\n' +
                     ' - 일반 학습 모델 (HAT): 일반적인 이미지들을 이용하여 학습한 모델로, 범용적으로 일반적인 이미지에 대하여 높은 품질을 기대할 수 있습니다.',
-                cacheSize: 0,
                 inputType: ModelInputType.IMAGE,
                 outputType: ModelOutputType.HTML,
                 category: 'Compare Tool',
